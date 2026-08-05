@@ -54,6 +54,12 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
     }
   }, []);
 
+  const transcriptRef = useRef<string>("");
+
+  useEffect(() => {
+    transcriptRef.current = transcript;
+  }, [transcript]);
+
   const startListening = useCallback((): void => {
     setError("");
     const SpeechRecognition =
@@ -63,18 +69,18 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
     recognition.interimResults = true;
     recognition.lang = "en-US";
 
-    let finalTranscript = transcript;
+    const initialText = transcriptRef.current;
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
-      let interim = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        if (event.results[i].isFinal) {
-          finalTranscript += event.results[i][0].transcript + " ";
-        } else {
-          interim += event.results[i][0].transcript;
-        }
+      let speechText = "";
+      for (let i = 0; i < event.results.length; i++) {
+        speechText += event.results[i][0].transcript;
       }
-      setTranscript(finalTranscript + interim);
+      setTranscript(
+        initialText +
+          (initialText && !initialText.endsWith(" ") ? " " : "") +
+          speechText
+      );
     };
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
@@ -96,7 +102,7 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
     recognitionRef.current = recognition;
     recognition.start();
     setIsListening(true);
-  }, [transcript]);
+  }, []);
 
   const stopListening = useCallback((): void => {
     if (recognitionRef.current) {

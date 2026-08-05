@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
-import { getGeminiClient } from "@/lib/gemini";
+import { generateGeminiContent } from "@/lib/gemini";
 import { supabase } from "@/lib/supabase";
 import { RoadmapData, SkillAnalysis } from "@/types";
 
@@ -18,8 +18,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         { status: 400 }
       );
     }
-
-    const ai = getGeminiClient();
 
     const prompt = `You are a skill-gap analysis AI for Malaysian university students. Analyze the following resume/bio against the career roadmap requirements.
 
@@ -54,12 +52,7 @@ Return ONLY valid JSON (no markdown, no code fences) in this exact format:
 
 Be encouraging but honest. Focus on actionable advice for the Malaysian context.`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-    });
-
-    const text = response.text?.trim() ?? "";
+    const text = await generateGeminiContent(prompt);
 
     let cleanedText = text;
     if (cleanedText.startsWith("```")) {

@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
-import { getGeminiClient } from "@/lib/gemini";
+import { generateGeminiContent } from "@/lib/gemini";
 import { supabase } from "@/lib/supabase";
 import { RoadmapData } from "@/types";
 
@@ -13,8 +13,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         { status: 400 }
       );
     }
-
-    const ai = getGeminiClient();
 
     const prompt = `You are a career guidance AI assistant for Malaysian university students. Based on the following voice transcript from a student describing their interests, background, or dream job, generate a personalized career roadmap.
 
@@ -39,12 +37,7 @@ Return ONLY valid JSON (no markdown, no code fences) in this exact format:
 
 Generate between 5 and 8 roadmap steps. Be specific to the Malaysian job market context. Include both technical and soft skills.`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-    });
-
-    const text = response.text?.trim() ?? "";
+    const text = await generateGeminiContent(prompt);
 
     // Clean potential markdown code fences
     let cleanedText = text;
