@@ -1,0 +1,315 @@
+/* ===== Hero ===== */
+.hero {
+  position: relative;
+  padding: calc(80px + var(--space-16)) var(--space-6) var(--space-12);
+  text-align: center;
+  background: var(--gradient-hero);
+  overflow: hidden;
+}
+
+.heroGlow {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(
+    circle,
+    rgba(240, 180, 41, 0.08) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+  max-width: 700px;
+  margin: 0 auto;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.heroTitle {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-4);
+  letter-spacing: -0.02em;
+}
+
+.heroSubtitle {
+  color: var(--gray-400);
+  font-size: 1.0625rem;
+  line-height: 1.7;
+}
+
+/* ===== Search Section ===== */
+.searchSection {
+  padding: var(--space-12) 0;
+}
+
+.searchCard {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  text-align: center;
+}
+
+.searchCard h3 {
+  font-size: 1.25rem;
+  margin-bottom: var(--space-3);
+}
+
+.searchCard > p {
+  color: var(--gray-400);
+  font-size: 0.9375rem;
+  margin-bottom: var(--space-6);
+}
+
+.searchCard a {
+  color: var(--accent-400);
+  text-decoration: underline;
+}
+
+.searchInput {
+  display: flex;
+  gap: var(--space-3);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.loadingCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-12);
+  color: var(--gray-400);
+}
+
+.errorMsg {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: var(--radius-lg);
+  color: #fca5a5;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ===== Results ===== */
+.results {
+  padding: 0 0 var(--space-20);
+}
+
+/* ===== Summary Bar ===== */
+.summaryBar {
+  display: flex;
+  gap: var(--space-6);
+  justify-content: center;
+  margin-bottom: var(--space-12);
+  flex-wrap: wrap;
+}
+
+.summaryItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-5) var(--space-8);
+  background: var(--surface-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  min-width: 140px;
+}
+
+.summaryValue {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+}
+
+.summaryLabel {
+  font-size: 0.75rem;
+  color: var(--gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ===== Skill Sections ===== */
+.skillSection {
+  margin-bottom: var(--space-10);
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.skillHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.skillHeader h3 {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.noCourses {
+  color: var(--gray-500);
+  font-size: 0.9375rem;
+  font-style: italic;
+  padding: var(--space-4);
+}
+
+/* ===== Course Grid ===== */
+.courseGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-4);
+}
+
+.courseCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  background: var(--surface-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  text-decoration: none;
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.courseCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-primary);
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.courseCard:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+.courseCard:hover::before {
+  opacity: 1;
+}
+
+.courseProvider {
+  font-size: 0.75rem;
+  color: var(--gray-500);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.courseTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  line-height: 1.4;
+}
+
+.courseMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.courseDuration {
+  color: var(--gray-400);
+  font-size: 0.8125rem;
+}
+
+.courseKeywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.keyword {
+  padding: 2px var(--space-2);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: var(--radius-sm);
+  color: var(--gray-500);
+  font-size: 0.6875rem;
+  text-transform: lowercase;
+}
+
+.courseArrow {
+  margin-top: auto;
+  color: var(--accent-400);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: transform var(--transition-fast);
+}
+
+.courseCard:hover .courseArrow {
+  transform: translateX(4px);
+}
+
+/* ===== Back CTA ===== */
+.backCta {
+  margin-top: var(--space-12);
+}
+
+.backCtaCard {
+  text-align: center;
+  padding: var(--space-10);
+  background: var(--gradient-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+}
+
+.backCtaCard h3 {
+  font-size: 1.25rem;
+  margin-bottom: var(--space-3);
+}
+
+.backCtaCard > p {
+  color: var(--gray-400);
+  font-size: 0.9375rem;
+  margin-bottom: var(--space-6);
+}
+
+.backCtaActions {
+  display: flex;
+  gap: var(--space-4);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .searchInput {
+    flex-direction: column;
+  }
+
+  .courseGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .summaryBar {
+    gap: var(--space-3);
+  }
+
+  .summaryItem {
+    padding: var(--space-4) var(--space-6);
+    min-width: 100px;
+  }
+}

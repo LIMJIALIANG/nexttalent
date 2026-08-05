@@ -1,0 +1,358 @@
+================================================================================
+  NEXTGEN TALENT MATRIX — COMPLETE SETUP GUIDE
+  Voice-Activated Future Talent Ecosystem
+  URIIS Student Biz Innov Challenge 2026
+  Problem Statement #3: AI for Employment & Skills
+================================================================================
+
+TABLE OF CONTENTS
+─────────────────
+1. Prerequisites
+2. Project Structure
+3. Environment Setup (.env.local)
+4. Getting a Gemini API Key (REQUIRED)
+5. Setting Up Supabase (OPTIONAL)
+6. Running the App Locally
+7. Deploying to Vercel
+8. How the 4 Modules Work
+9. Troubleshooting
+10. Tech Stack Summary
+
+================================================================================
+1. PREREQUISITES
+================================================================================
+
+Before you begin, make sure you have these installed:
+
+  ✅ Node.js v18 or higher  →  https://nodejs.org/
+  ✅ npm (comes with Node.js)
+  ✅ A modern browser (Chrome or Edge recommended for voice features)
+  ✅ A code editor (VS Code recommended)
+
+To check your versions:
+  > node --version      (should be v18+)
+  > npm --version       (should be v9+)
+
+================================================================================
+2. PROJECT STRUCTURE
+================================================================================
+
+nextgen-talent-matrix/
+├── .env.example            ← Copy this to .env.local
+├── .env.local              ← YOUR secret keys (create this!)
+├── package.json
+├── next.config.mjs
+├── tsconfig.json           ← TypeScript configuration
+│
+├── src/
+│   ├── lib/
+│   │   ├── gemini.ts           ← Gemini AI client (TS)
+│   │   ├── supabase.ts         ← Supabase client (TS)
+│   │   └── courses-data.ts     ← 25 courses database (TS)
+│   │
+│   ├── types/
+│   │   ├── index.ts            ← Shared type definitions
+│   │   └── css.d.ts            ← CSS Module type definitions
+│   │
+│   ├── components/
+│   │   ├── Navbar.tsx          ← Global navigation (TSX)
+│   │   ├── Navbar.module.css
+│   │   ├── Footer.tsx          ← Global footer (TSX)
+│   │   └── Footer.module.css
+│   │
+│   └── app/
+│       ├── globals.css         ← Design system (CSS tokens)
+│       ├── layout.tsx          ← Root layout (TSX)
+│       ├── page.tsx            ← Landing page (Home) (TSX)
+│       ├── page.module.css
+│       │
+│       ├── voice-roadmap/      ← MODULE 1: Voice-to-Roadmap
+│       │   ├── page.tsx
+│       │   └── page.module.css
+│       │
+│       ├── skill-analyzer/     ← MODULE 2: Skill-Gap Analyzer
+│       │   ├── page.tsx
+│       │   └── page.module.css
+│       │
+│       ├── learn/              ← MODULE 3: Micro-Learning Hub
+│       │   ├── page.tsx
+│       │   └── page.module.css
+│       │
+│       ├── dashboard/          ← MODULE 4: Analytics Dashboard
+│       │   ├── page.tsx
+│       │   └── page.module.css
+│       │
+│       └── api/                ← BACKEND API ROUTES
+│           ├── generate-roadmap/route.ts   ← POST /api/generate-roadmap (TS)
+│           ├── analyze-skills/route.ts     ← POST /api/analyze-skills (TS)
+│           ├── recommend-courses/route.ts  ← POST /api/recommend-courses (TS)
+│           └── analytics/route.ts          ← GET  /api/analytics (TS)
+
+================================================================================
+3. ENVIRONMENT SETUP (.env.local)
+================================================================================
+
+Step 1: In the project root folder, create a file called ".env.local"
+Step 2: Copy the following content into .env.local:
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                                                                 │
+  │  # REQUIRED: Gemini AI API Key                                  │
+  │  GEMINI_API_KEY=your_gemini_api_key_here                        │
+  │                                                                 │
+  │  # OPTIONAL: Supabase (for live analytics storage)              │
+  │  NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here                │
+  │  NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here      │
+  │                                                                 │
+  └─────────────────────────────────────────────────────────────────┘
+
+IMPORTANT:
+  - .env.local is already in .gitignore — it will NOT be committed
+  - The app works WITHOUT Supabase (Module 4 uses sample data)
+  - You MUST set GEMINI_API_KEY for Modules 1 and 2 to work
+
+================================================================================
+4. GETTING A GEMINI API KEY (REQUIRED)
+================================================================================
+
+This is the ONLY required setup step.
+
+  1. Go to: https://aistudio.google.com/apikey
+  2. Sign in with your Google account
+  3. Click "Create API Key"
+  4. Select "Create API key in new project" (or pick an existing one)
+  5. Copy the generated API key
+  6. Paste it into your .env.local file:
+
+       GEMINI_API_KEY=AIzaSyB-your-actual-key-here
+
+  ⚠️ The free tier gives you 15 requests per minute — plenty for demos!
+  ⚠️ NEVER share this key publicly or commit it to Git
+
+================================================================================
+5. SETTING UP SUPABASE (OPTIONAL)
+================================================================================
+
+Supabase is ONLY needed if you want live data storage for Module 4.
+The app works perfectly WITHOUT it (uses built-in sample analytics data).
+
+If you DO want to set it up:
+
+  STEP A — Create a Supabase Project
+  ────────────────────────────────────
+  1. Go to: https://supabase.com
+  2. Sign up / Log in
+  3. Click "New Project"
+  4. Pick a name (e.g., "nextgen-talent"), set a password, pick a region
+  5. Wait for the project to be created
+
+  STEP B — Get Your Keys
+  ────────────────────────
+  1. In your project dashboard, go to: Settings → API
+  2. Copy the "Project URL" → paste as NEXT_PUBLIC_SUPABASE_URL
+  3. Copy the "anon public" key → paste as NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  STEP C — Create Database Tables
+  ─────────────────────────────────
+  Go to SQL Editor in Supabase and run this SQL:
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                                                                 │
+  │  -- Table for voice roadmap sessions                            │
+  │  CREATE TABLE roadmap_sessions (                                │
+  │    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,               │
+  │    transcript TEXT NOT NULL,                                    │
+  │    career_title TEXT NOT NULL,                                  │
+  │    required_skills TEXT[] DEFAULT '{}',                         │
+  │    steps_count INTEGER DEFAULT 0,                               │
+  │    created_at TIMESTAMPTZ DEFAULT NOW()                         │
+  │  );                                                             │
+  │                                                                 │
+  │  -- Table for skill analysis results                            │
+  │  CREATE TABLE skill_analyses (                                  │
+  │    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,               │
+  │    career_title TEXT NOT NULL,                                  │
+  │    match_percentage INTEGER DEFAULT 0,                          │
+  │    matched_skills_count INTEGER DEFAULT 0,                      │
+  │    missing_skills TEXT[] DEFAULT '{}',                           │
+  │    created_at TIMESTAMPTZ DEFAULT NOW()                         │
+  │  );                                                             │
+  │                                                                 │
+  │  -- Enable Row Level Security (recommended)                     │
+  │  ALTER TABLE roadmap_sessions ENABLE ROW LEVEL SECURITY;        │
+  │  ALTER TABLE skill_analyses ENABLE ROW LEVEL SECURITY;          │
+  │                                                                 │
+  │  -- Allow inserts from anon (for demo purposes)                 │
+  │  CREATE POLICY "Allow inserts" ON roadmap_sessions              │
+  │    FOR INSERT WITH CHECK (true);                                │
+  │  CREATE POLICY "Allow selects" ON roadmap_sessions              │
+  │    FOR SELECT USING (true);                                     │
+  │                                                                 │
+  │  CREATE POLICY "Allow inserts" ON skill_analyses                │
+  │    FOR INSERT WITH CHECK (true);                                │
+  │  CREATE POLICY "Allow selects" ON skill_analyses                │
+  │    FOR SELECT USING (true);                                     │
+  │                                                                 │
+  └─────────────────────────────────────────────────────────────────┘
+
+================================================================================
+6. RUNNING THE APP LOCALLY
+================================================================================
+
+  Step 1: Open a terminal in the project folder
+  Step 2: Install dependencies (if not already done):
+
+       > npm install
+
+  Step 3: Start the development server:
+
+       > npm run dev
+
+  Step 4: Open your browser and go to:
+
+       http://localhost:3000
+
+  That's it! The app should be running.
+
+  PAGES YOU CAN VISIT:
+  ─────────────────────
+    http://localhost:3000                 ← Landing Page
+    http://localhost:3000/voice-roadmap   ← Module 1: Voice-to-Roadmap
+    http://localhost:3000/skill-analyzer  ← Module 2: Skill-Gap Analyzer
+    http://localhost:3000/learn           ← Module 3: Micro-Learning Hub
+    http://localhost:3000/dashboard       ← Module 4: Analytics Dashboard
+
+================================================================================
+7. DEPLOYING TO VERCEL (FOR LIVE DEMO URL)
+================================================================================
+
+  Step 1: Push your code to GitHub
+  ─────────────────────────────────
+    > git init
+    > git add .
+    > git commit -m "Initial commit: NextGen Talent Matrix"
+    > git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
+    > git push -u origin main
+
+  Step 2: Deploy to Vercel
+  ─────────────────────────
+    1. Go to: https://vercel.com
+    2. Sign up with GitHub
+    3. Click "Import Project" → Select your repo
+    4. In the "Environment Variables" section, add:
+         GEMINI_API_KEY = your_key_here
+         NEXT_PUBLIC_SUPABASE_URL = your_url (if using Supabase)
+         NEXT_PUBLIC_SUPABASE_ANON_KEY = your_key (if using Supabase)
+    5. Click "Deploy"
+    6. Your live URL will be: https://your-project-name.vercel.app
+
+  ⚡ Vercel automatically rebuilds when you push to GitHub!
+
+================================================================================
+8. HOW THE 4 MODULES WORK
+================================================================================
+
+  MODULE 1: Voice-to-Roadmap AI Assistant
+  ────────────────────────────────────────
+  • User clicks microphone → speaks their dream career
+  • Browser's Web Speech API converts speech to text
+  • Text is sent to POST /api/generate-roadmap
+  • Gemini AI generates a structured JSON career roadmap
+  • Frontend renders it as a beautiful vertical timeline
+  • Data is stored in Supabase (if connected)
+
+  MODULE 2: Automated Skill-Gap Analyzer
+  ───────────────────────────────────────
+  • User pastes their resume/bio text
+  • Resume + Roadmap data sent to POST /api/analyze-skills
+  • Gemini AI compares current skills vs. required skills
+  • Returns match percentage, matched skills, missing skills
+  • Displayed as progress bar + two-column skills grid
+
+  MODULE 3: Micro-Learning Recommender
+  ────────────────────────────────────
+  • Takes missing skills from Module 2
+  • Sends to POST /api/recommend-courses
+  • Matches against local database of 25 curated courses
+  • Returns 2-3 free courses per missing skill
+  • Links directly to Coursera, Udemy, edX, etc.
+
+  MODULE 4: Workforce Analytics Dashboard
+  ───────────────────────────────────────
+  • Fetches aggregated data from GET /api/analytics
+  • Displays 4 KPI cards (sessions, analyses, match%, universities)
+  • 4 Chart.js charts (careers bar, match donut, skills bar, university bar)
+  • Weekly trend table + policy insight cards
+  • Works with sample data OR live Supabase data
+
+================================================================================
+9. TROUBLESHOOTING
+================================================================================
+
+  PROBLEM: "Microphone not working"
+  → Make sure you're using Chrome or Edge
+  → Check browser permissions (click lock icon in address bar)
+  → HTTPS is required in production (Vercel handles this)
+
+  PROBLEM: "Failed to generate roadmap"
+  → Check that GEMINI_API_KEY is set in .env.local
+  → Restart the dev server after changing .env.local
+  → Check the terminal for error messages
+
+  PROBLEM: "Charts not loading on dashboard"
+  → Hard refresh the page (Ctrl+Shift+R)
+  → The charts use dynamic imports — may take a moment
+
+  PROBLEM: "Module 2 says no roadmap loaded"
+  → Go through Module 1 first and click "Analyze My Skills"
+  → This passes the roadmap data via URL query params
+
+  PROBLEM: "npm install fails"
+  → Delete node_modules and package-lock.json
+  → Run: npm install
+  → Make sure Node.js is v18+
+
+  PROBLEM: "Supabase not connecting"
+  → The app works WITHOUT Supabase — it's optional
+  → Check that URLs and keys are correct in .env.local
+  → Make sure the tables exist (see Section 5)
+
+================================================================================
+10. TECH STACK SUMMARY
+================================================================================
+
+  FRONTEND:
+    • Next.js 15 (App Router)
+    • React 19
+    • TypeScript (Strict Mode)
+    • Vanilla CSS (CSS Modules + Custom Properties)
+    • Chart.js + react-chartjs-2 (analytics charts)
+    • Web Speech API (browser-native voice recognition)
+
+  BACKEND:
+    • Next.js API Routes (server-side)
+    • TypeScript (Strict Mode)
+    • Google Gemini 2.5 Flash (AI roadmap + analysis)
+
+  DATABASE (Optional):
+    • Supabase (PostgreSQL + realtime)
+
+  DEPLOYMENT:
+    • Vercel (recommended, zero-config)
+
+  KEY NPM PACKAGES:
+    • typescript             — Type safety and compilation
+    • @types/react           — React type definitions
+    • @types/node            — Node.js type definitions
+    • @google/genai          — Gemini AI SDK
+    • @supabase/supabase-js  — Supabase client
+    • chart.js               — Chart rendering
+    • react-chartjs-2        — React wrapper for Chart.js
+    • framer-motion          — Animations (available for future enhancements)
+
+================================================================================
+  END OF SETUP GUIDE
+  
+  For any questions, email: support@kolaxus.net
+  #URIIS2026 | NextGen Talent Matrix
+================================================================================

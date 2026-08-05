@@ -1,0 +1,279 @@
+/* ===== Hero ===== */
+.hero {
+  position: relative;
+  padding: calc(80px + var(--space-16)) var(--space-6) var(--space-12);
+  text-align: center;
+  background: var(--gradient-hero);
+  overflow: hidden;
+}
+
+.heroGlow {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(
+    circle,
+    rgba(13, 139, 217, 0.1) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+  max-width: 700px;
+  margin: 0 auto;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.heroTitle {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-4);
+  letter-spacing: -0.02em;
+}
+
+.heroSubtitle {
+  color: var(--gray-400);
+  font-size: 1.0625rem;
+  line-height: 1.7;
+}
+
+.sampleBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding: var(--space-2) var(--space-4);
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: var(--radius-full);
+  color: var(--warning);
+  font-size: 0.8125rem;
+}
+
+/* ===== Loading ===== */
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: var(--space-4);
+  background: var(--surface-0);
+  color: var(--gray-400);
+}
+
+.errorMsg {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: var(--radius-lg);
+  color: #fca5a5;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ===== KPI Section ===== */
+.kpiSection {
+  padding: var(--space-8) 0;
+  margin-top: -30px;
+  position: relative;
+  z-index: 10;
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+}
+
+.kpiCard {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  text-align: center;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.kpiCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+.kpiIcon {
+  font-size: 1.75rem;
+  margin-bottom: var(--space-3);
+}
+
+.kpiValue {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 800;
+  color: white;
+  margin-bottom: var(--space-1);
+}
+
+.kpiLabel {
+  color: var(--gray-400);
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ===== Charts Section ===== */
+.chartsSection {
+  padding: var(--space-8) 0;
+}
+
+.chartsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-6);
+}
+
+.chartCard {
+  background: var(--surface-1);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+}
+
+.chartTitle {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  margin-bottom: var(--space-2);
+}
+
+.chartDesc {
+  color: var(--gray-500);
+  font-size: 0.8125rem;
+  margin-bottom: var(--space-6);
+}
+
+.chartContainer {
+  position: relative;
+  height: 300px;
+}
+
+/* ===== Trend Section ===== */
+.trendSection {
+  padding: var(--space-8) 0;
+}
+
+.trendCard {
+  background: var(--surface-1);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  margin-top: var(--space-4);
+}
+
+.trendTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.trendTable th {
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  color: var(--gray-400);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.trendTable td {
+  padding: var(--space-3) var(--space-4);
+  color: var(--gray-200);
+  font-size: 0.9375rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.trendTable tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ===== Insights Section ===== */
+.insightsSection {
+  padding: var(--space-12) 0 var(--space-20);
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: var(--space-10);
+}
+
+.sectionTitle {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+}
+
+.insightsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+}
+
+.insightCard {
+  background: var(--gradient-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  transition: transform var(--transition-base);
+}
+
+.insightCard:hover {
+  transform: translateY(-3px);
+}
+
+.insightIcon {
+  font-size: 2rem;
+  margin-bottom: var(--space-4);
+}
+
+.insightCard h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: var(--space-3);
+}
+
+.insightCard p {
+  color: var(--gray-400);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1024px) {
+  .chartsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .kpiGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .insightsGrid {
+    grid-template-columns: 1fr;
+  }
+}

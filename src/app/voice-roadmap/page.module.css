@@ -1,0 +1,396 @@
+/* ===== Hero ===== */
+.hero {
+  position: relative;
+  padding: calc(80px + var(--space-16)) var(--space-6) var(--space-12);
+  text-align: center;
+  background: var(--gradient-hero);
+  overflow: hidden;
+}
+
+.heroGlow {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(
+    circle,
+    rgba(0, 212, 160, 0.1) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+  max-width: 700px;
+  margin: 0 auto;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.heroTitle {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-4);
+  letter-spacing: -0.02em;
+}
+
+.heroSubtitle {
+  color: var(--gray-400);
+  font-size: 1.0625rem;
+  line-height: 1.7;
+}
+
+/* ===== Voice Section ===== */
+.voiceSection {
+  padding: var(--space-12) 0 var(--space-16);
+  margin-top: -40px;
+  position: relative;
+  z-index: 10;
+}
+
+.voiceCard {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-10);
+  box-shadow: var(--glass-shadow);
+}
+
+/* ===== Mic Button ===== */
+.micContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+.micButton {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 3px solid var(--surface-3);
+  background: var(--surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.micButton:hover {
+  border-color: var(--accent-400);
+  background: var(--surface-3);
+  transform: scale(1.05);
+}
+
+.micButton.listening {
+  border-color: var(--accent-400);
+  background: rgba(0, 212, 160, 0.15);
+  box-shadow: 0 0 30px rgba(0, 212, 160, 0.3);
+}
+
+.micIcon {
+  font-size: 2.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.pulseRing,
+.pulseRing2 {
+  position: absolute;
+  inset: -4px;
+  border: 2px solid var(--accent-400);
+  border-radius: 50%;
+  animation: pulse-ring 1.5s ease-out infinite;
+}
+
+.pulseRing2 {
+  animation-delay: 0.5s;
+}
+
+.micLabel {
+  color: var(--gray-400);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.unsupported {
+  padding: var(--space-4);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-lg);
+  color: #f87171;
+  text-align: center;
+}
+
+/* ===== Transcript ===== */
+.transcriptArea {
+  margin-bottom: var(--space-6);
+}
+
+.fieldLabel {
+  display: block;
+  color: var(--gray-300);
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+  letter-spacing: 0.02em;
+}
+
+/* ===== Voice Actions ===== */
+.voiceActions {
+  display: flex;
+  gap: var(--space-4);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.errorMsg {
+  margin-top: var(--space-6);
+  padding: var(--space-4);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: var(--radius-lg);
+  color: #fca5a5;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.9375rem;
+}
+
+/* ===== Results Section ===== */
+.results {
+  padding: var(--space-12) 0 var(--space-20);
+}
+
+.resultHeader {
+  text-align: center;
+  margin-bottom: var(--space-12);
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.careerTitle {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 800;
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-4);
+  letter-spacing: -0.02em;
+}
+
+.careerSummary {
+  color: var(--gray-400);
+  font-size: 1.0625rem;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+.outlookBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding: var(--space-3) var(--space-5);
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: var(--radius-full);
+  color: var(--success);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* ===== Timeline ===== */
+.timeline {
+  max-width: 750px;
+  margin: 0 auto;
+  position: relative;
+  padding-left: 40px;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 15px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    var(--accent-400),
+    var(--primary-500),
+    var(--surface-3)
+  );
+}
+
+.timelineItem {
+  position: relative;
+  padding-bottom: var(--space-8);
+  animation: fadeInUp 0.5s ease-out both;
+}
+
+.timelineDot {
+  position: absolute;
+  left: -33px;
+  top: 4px;
+  width: 28px;
+  height: 28px;
+  background: var(--gradient-primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+  z-index: 2;
+}
+
+.timelineContent {
+  background: var(--gradient-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+}
+
+.timelineHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.timelineHeader h3 {
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+.timelineContent p {
+  color: var(--gray-400);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.skillTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.skillTag {
+  padding: var(--space-1) var(--space-3);
+  background: rgba(13, 139, 217, 0.12);
+  border: 1px solid rgba(13, 139, 217, 0.2);
+  border-radius: var(--radius-full);
+  color: var(--primary-300);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* ===== Skills Summary ===== */
+.skillsSummary {
+  max-width: 750px;
+  margin: var(--space-12) auto 0;
+  text-align: center;
+}
+
+.skillsSummary h3 {
+  font-size: 1.25rem;
+  margin-bottom: var(--space-6);
+}
+
+.skillCloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: center;
+}
+
+.skillCloudTag {
+  padding: var(--space-2) var(--space-4);
+  background: rgba(0, 212, 160, 0.1);
+  border: 1px solid rgba(0, 212, 160, 0.2);
+  border-radius: var(--radius-full);
+  color: var(--accent-400);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.skillCloudTag:hover {
+  background: rgba(0, 212, 160, 0.2);
+  transform: scale(1.05);
+}
+
+/* ===== Next Step ===== */
+.nextStep {
+  max-width: 750px;
+  margin: var(--space-12) auto 0;
+}
+
+.nextStepCard {
+  background: var(--gradient-card);
+  border: 1px solid rgba(0, 212, 160, 0.15);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  text-align: center;
+}
+
+.nextStepCard h3 {
+  font-size: 1.25rem;
+  margin-bottom: var(--space-3);
+}
+
+.nextStepCard p {
+  color: var(--gray-400);
+  font-size: 0.9375rem;
+  margin-bottom: var(--space-6);
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .voiceCard {
+    padding: var(--space-6);
+  }
+
+  .micButton {
+    width: 80px;
+    height: 80px;
+  }
+
+  .micIcon {
+    font-size: 2rem;
+  }
+
+  .timeline {
+    padding-left: 30px;
+  }
+
+  .timelineDot {
+    left: -26px;
+    width: 22px;
+    height: 22px;
+    font-size: 0.625rem;
+  }
+
+  .timelineContent {
+    padding: var(--space-4);
+  }
+
+  .timelineHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+}
