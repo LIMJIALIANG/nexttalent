@@ -65,3 +65,53 @@ export async function generateGeminiContent(prompt: string): Promise<string> {
     `Gemini AI generation failed for all models. Last error: ${lastError?.message}`
   );
 }
+
+/**
+ * Generates content using Gemini AI with multimodal input blocks (e.g. base64 image/PDF).
+ */
+export async function generateGeminiMultimodal(contents: any[]): Promise<string> {
+  const client = getGeminiClient();
+  const modelsToTry: string[] = [];
+
+  if (process.env.GEMINI_MODEL) {
+    modelsToTry.push(process.env.GEMINI_MODEL);
+  }
+
+  const defaultModels = [
+    "gemini-2.0-flash",
+    "gemini-1.5-flash",
+    "gemini-2.5-flash",
+    "gemini-3.1-flash-lite",
+  ];
+
+  for (const model of defaultModels) {
+    if (!modelsToTry.includes(model)) {
+      modelsToTry.push(model);
+    }
+  }
+
+  let lastError: Error | null = null;
+
+  for (const modelName of modelsToTry) {
+    try {
+      console.log(`[Gemini Multimodal] Attempting generation with model: ${modelName}`);
+      const response = await client.models.generateContent({
+        model: modelName,
+        contents: contents,
+      });
+
+      const text = response.text?.trim();
+      if (text) {
+        console.log(`[Gemini Multimodal] Generation succeeded with model: ${modelName}`);
+        return text;
+      }
+    } catch (err) {
+      console.warn(`[Gemini Multimodal] Model ${modelName} failed:`, (err as Error).message);
+      lastError = err as Error;
+    }
+  }
+
+  throw new Error(
+    `Gemini AI multimodal generation failed for all models. Last error: ${lastError?.message}`
+  );
+}

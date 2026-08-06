@@ -97,9 +97,221 @@
   text-decoration: underline;
 }
 
-/* ===== Resume Input ===== */
-.resumeCard {
-  margin-bottom: var(--space-6);
+/* ===== File Scanner / Resume Form ===== */
+.scannerCard {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-6);
+  margin-bottom: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.scannerTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: white;
+}
+
+.scannerDesc {
+  color: var(--gray-400);
+  font-size: 0.875rem;
+  max-width: 500px;
+}
+
+.fileUploadArea {
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  width: 100%;
+  max-width: 500px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  background: rgba(255, 255, 255, 0.02);
+  margin-top: var(--space-2);
+}
+
+.fileUploadArea:hover {
+  border-color: var(--accent-400);
+  background: rgba(0, 212, 160, 0.04);
+}
+
+.fileUploadIcon {
+  font-size: 2.5rem;
+  margin-bottom: var(--space-3);
+  display: block;
+}
+
+.fileInput {
+  display: none;
+}
+
+.scanStatus {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.scanSuccess {
+  color: var(--success);
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+/* ===== Form Structure ===== */
+.formCard {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-8);
+  margin-bottom: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.sectionHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: var(--space-2);
+}
+
+.sectionTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: white;
+}
+
+.inputList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.inputListItem {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.listItemDeleteBtn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all var(--transition-fast);
+}
+
+.listItemDeleteBtn:hover {
+  background: #ef4444;
+  color: white;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.formGroup label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--gray-400);
+}
+
+.tagInputWrapper {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.tagItem {
+  background: rgba(13, 139, 217, 0.12);
+  border: 1px solid rgba(13, 139, 217, 0.3);
+  color: #0d8bd9;
+  border-radius: var(--radius-full);
+  padding: 4px 12px;
+  font-size: 0.8125rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.tagRemoveBtn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btnAddItem {
+  background: rgba(0, 212, 160, 0.1);
+  border: 1px dashed rgba(0, 212, 160, 0.3);
+  color: var(--accent-400);
+  border-radius: var(--radius-lg);
+  padding: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all var(--transition-fast);
+}
+
+.btnAddItem:hover {
+  background: rgba(0, 212, 160, 0.15);
+  border-color: var(--accent-400);
 }
 
 .fieldLabel {
@@ -108,14 +320,6 @@
   font-size: 0.9375rem;
   font-weight: 600;
   margin-bottom: var(--space-3);
-}
-
-.resumeMeta {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: var(--space-2);
-  color: var(--gray-500);
-  font-size: 0.8125rem;
 }
 
 /* ===== Actions ===== */
@@ -347,5 +551,9 @@
 
   .contextCard {
     flex-direction: column;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
   }
 }

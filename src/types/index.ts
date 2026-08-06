@@ -105,3 +105,37 @@ export interface ApiResponse<T> {
   error?: string;
   isLiveData?: boolean;
 }
+
+// ===== Resume Parsing Types =====
+
+export interface ResumeEducation {
+  institution: string;
+  degree: string;
+  details: string;
+  duration: string;
+}
+
+export interface ResumeExperience {
+  company: string;
+  role: string;
+  description: string;
+  duration: string;
+}
+
+export interface ResumeProject {
+  title: string;
+  description: string;
+}
+
+export interface ParsedResumeData {
+  personal: {
+    name: string;
+    objective: string;
+  };
+  education: ResumeEducation[];
+  experience: ResumeExperience[];
+  projects: ResumeProject[];
+  skills: string[];
+  achievements: string[];
+}
+
