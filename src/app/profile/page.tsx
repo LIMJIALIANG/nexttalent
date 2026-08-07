@@ -17,7 +17,7 @@ interface UserProfile {
   bio: string;
   avatarUrl: string | null;
   googleAvatarUrl: string | null;
-  provider: string;
+  hasPassword: boolean;
 }
 
 export default function ProfilePage(): React.JSX.Element {
@@ -61,7 +61,9 @@ export default function ProfilePage(): React.JSX.Element {
         router.push("/auth");
       } else {
         const meta = session.user.user_metadata;
-        const identity = session.user.identities?.[0];
+        const identities = session.user.identities || [];
+        const hasPassword = identities.some((id) => id.provider === "email");
+
         const profileData: UserProfile = {
           email: session.user.email || "",
           firstName: meta?.first_name || "",
@@ -71,7 +73,7 @@ export default function ProfilePage(): React.JSX.Element {
           bio: meta?.bio || "",
           avatarUrl: meta?.custom_avatar_url || null,
           googleAvatarUrl: meta?.picture || meta?.avatar_url || null,
-          provider: identity?.provider || "email",
+          hasPassword,
         };
 
         setUser(profileData);
@@ -224,11 +226,8 @@ export default function ProfilePage(): React.JSX.Element {
 
       if (profileError) throw profileError;
 
-      // 2. Update Email if changed (manual email login users only)
+      // 2. Update Email if changed
       if (email.trim().toLowerCase() !== user.email.toLowerCase()) {
-        if (user.provider !== "email") {
-          throw new Error("Email updates are not allowed for Google SSO accounts.");
-        }
 
         const { error: emailError } = await supabase.auth.updateUser({
           email: email.trim(),
@@ -291,6 +290,11 @@ export default function ProfilePage(): React.JSX.Element {
       setNewPassword("");
       setConfirmPassword("");
       setCurrentPassword("");
+      
+      setUser((prev) => {
+        if (!prev) return null;
+        return { ...prev, hasPassword: true };
+      });
     } catch (err) {
       setSecurityErrorMsg((err as Error).message);
     } finally {
@@ -351,9 +355,7 @@ export default function ProfilePage(): React.JSX.Element {
               <h2 className={styles.userName}>
                 {`${firstName} ${lastName}`.trim() || "User Settings"}
               </h2>
-              <span className={`badge ${user.provider === "google" ? "badge-accent" : "badge-primary"}`}>
-                {user.provider === "google" ? "Google SSO Account" : "Standard Email Login"}
-              </span>
+
 
               <div className={styles.providerInfo}>
                 Registered Email:<br />
@@ -429,19 +431,17 @@ export default function ProfilePage(): React.JSX.Element {
                     />
                   </div>
 
-                  {user.provider === "email" && (
-                    <div className={styles.formGroup}>
-                      <label htmlFor="email-input">Email Address</label>
-                      <input
-                        type="email"
-                        id="email-input"
-                        className="input"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="you@university.edu.my"
-                      />
-                    </div>
-                  )}
+                  <div className={styles.formGroup}>
+                    <label htmlFor="email-input">Email Address</label>
+                    <input
+                      type="email"
+                      id="email-input"
+                      className="input"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@university.edu.my"
+                    />
+                  </div>
 
                   {errorMsg && <div className={styles.errorMsg}>⚠️ {errorMsg}</div>}
                   {successMsg && <div className={styles.successMsg}>✅ {successMsg}</div>}
@@ -457,50 +457,60 @@ export default function ProfilePage(): React.JSX.Element {
                 </form>
               </div>
 
-              {/* Password / Security Form (Manual email login users only) */}
-              {user.provider === "email" && (
-                <div className={styles.profileCard}>
-                  <h3 className={styles.cardTitle}>🔒 Security & Password</h3>
-                  <form className={styles.form} onSubmit={handleSaveSecurity}>
-                    <div className={styles.formGrid}>
-                      <div className={styles.formGroup}>
-                        <label htmlFor="new-pass-input">New Password</label>
-                        <input
-                          type="password"
-                          id="new-pass-input"
-                          className="input"
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          placeholder="Min. 6 characters"
-                        />
-                      </div>
-                      <div className={styles.formGroup}>
-                        <label htmlFor="confirm-pass-input">Confirm New Password</label>
-                        <input
-                          type="password"
-                          id="confirm-pass-input"
-                          className="input"
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          placeholder="Re-enter password"
-                        />
-                      </div>
+              {/* Password / Security Form */}
+              <div className={styles.profileCard}>
+                <h3 className={styles.cardTitle}>
+                  {!user.hasPassword
+                    ? "🔒 Secure Account with Password"
+                    : "🔒 Change Password"}
+                </h3>
+                <form className={styles.form} onSubmit={handleSaveSecurity}>
+                  <div className={styles.formGrid}>
+                    <div className={styles.formGroup}>
+                      <label htmlFor="new-pass-input">
+                        {!user.hasPassword ? "Set Password" : "New Password"}
+                      </label>
+                      <input
+                        type="password"
+                        id="new-pass-input"
+                        className="input"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Min. 6 characters"
+                      />
                     </div>
+                    <div className={styles.formGroup}>
+                      <label htmlFor="confirm-pass-input">Confirm New Password</label>
+                      <input
+                        type="password"
+                        id="confirm-pass-input"
+                        className="input"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Re-enter password"
+                      />
+                    </div>
+                  </div>
 
-                    {securityErrorMsg && <div className={styles.errorMsg}>⚠️ {securityErrorMsg}</div>}
-                    {securitySuccessMsg && <div className={styles.successMsg}>✅ {securitySuccessMsg}</div>}
+                  {securityErrorMsg && <div className={styles.errorMsg}>⚠️ {securityErrorMsg}</div>}
+                  {securitySuccessMsg && <div className={styles.successMsg}>✅ {securitySuccessMsg}</div>}
 
-                    <button
-                      type="submit"
-                      className="btn btn-secondary"
-                      disabled={isSavingSecurity}
-                      id="change-password-btn"
-                    >
-                      {isSavingSecurity ? <span className="spinner" /> : "Change Account Password"}
-                    </button>
-                  </form>
-                </div>
-              )}
+                  <button
+                    type="submit"
+                    className="btn btn-secondary"
+                    disabled={isSavingSecurity}
+                    id="change-password-btn"
+                  >
+                    {isSavingSecurity ? (
+                      <span className="spinner" />
+                    ) : !user.hasPassword ? (
+                      "Secure Account with Password"
+                    ) : (
+                      "Change Account Password"
+                    )}
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
         </div>
