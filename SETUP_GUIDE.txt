@@ -195,6 +195,44 @@ If you DO want to set it up:
   │                                                                 │
   └─────────────────────────────────────────────────────────────────┘
 
+  STEP D — Enable Google OAuth (OPTIONAL — for "Sign in with Google")
+  ────────────────────────────────────────────────────────────────────
+  If you want the "Sign in with Google" button to work, follow these steps:
+
+  1. Create a Google OAuth Client:
+     a. Go to: https://console.cloud.google.com/apis/credentials
+     b. Create a new project (or select your existing one)
+     c. Click "Create Credentials" → "OAuth client ID"
+     d. Application type: "Web application"
+     e. Name: "NextGen Talent Matrix"
+     f. Authorized redirect URIs — add BOTH of these:
+          http://localhost:3000/auth/callback          (for local dev)
+          https://YOUR-PROJECT-REF.supabase.co/auth/v1/callback
+        (Replace YOUR-PROJECT-REF with your Supabase project reference ID.
+         You can find it in: Supabase Dashboard → Settings → API → URL)
+     g. Click "Create" and copy the Client ID and Client Secret
+
+  2. Configure Google Provider in Supabase:
+     a. Go to your Supabase Dashboard → Authentication → Providers
+     b. Find "Google" in the list and click to expand
+     c. Toggle "Enable Sign in with Google" to ON
+     d. Paste your Google Client ID
+     e. Paste your Google Client Secret
+     f. Click "Save"
+
+  3. Configure OAuth Consent Screen (if prompted):
+     a. In Google Cloud Console → APIs & Services → OAuth consent screen
+     b. User type: "External"
+     c. Fill in app name: "NextGen Talent Matrix"
+     d. Fill in support email (your email)
+     e. Add scopes: email, profile, openid
+     f. Add test users (your email) if in "Testing" mode
+     g. Click "Save and Continue"
+
+  ⚡ That's it! The "Sign in with Google" button on /auth will now work.
+  ⚠️ For production, publish the OAuth consent screen to avoid test-user
+     restrictions.
+
 ================================================================================
 6. RUNNING THE APP LOCALLY
 ================================================================================
@@ -217,6 +255,7 @@ If you DO want to set it up:
   PAGES YOU CAN VISIT:
   ─────────────────────
     http://localhost:3000                 ← Landing Page
+    http://localhost:3000/auth             ← Login / Register
     http://localhost:3000/voice-roadmap   ← Module 1: Voice-to-Roadmap
     http://localhost:3000/skill-analyzer  ← Module 2: Skill-Gap Analyzer
     http://localhost:3000/learn           ← Module 3: Micro-Learning Hub
