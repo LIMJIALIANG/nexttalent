@@ -49,19 +49,36 @@ export default function Navbar(): React.JSX.Element {
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
 
+    const mapUserSession = (sessionUser: any) => {
+      const meta = sessionUser.user_metadata;
+      
+      // Resolve avatar: Custom Upload -> Google OAuth Picture -> Google Email Avatar -> Initials Fallback
+      let avatar = meta?.custom_avatar_url || null;
+      if (!avatar) {
+        avatar = meta?.picture || meta?.avatar_url || null;
+      }
+      
+      // Filter out standard Google default avatar paths if we can fetch the fresh one by email
+      const isGmail = sessionUser.email?.toLowerCase().endsWith("@gmail.com");
+      if (!avatar && isGmail) {
+        avatar = `https://profiles.google.com/s2/photos/profile/${sessionUser.email}`;
+      }
+
+      setUser({
+        email: sessionUser.email || "",
+        name:
+          meta?.full_name ||
+          meta?.name ||
+          `${meta?.first_name || ""} ${meta?.last_name || ""}`.trim() ||
+          sessionUser.email ||
+          "",
+        avatarUrl: avatar,
+      });
+    };
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        const meta = session.user.user_metadata;
-        setUser({
-          email: session.user.email || "",
-          name:
-            meta?.full_name ||
-            meta?.name ||
-            `${meta?.first_name || ""} ${meta?.last_name || ""}`.trim() ||
-            session.user.email ||
-            "",
-          avatarUrl: meta?.avatar_url || meta?.picture || null,
-        });
+        mapUserSession(session.user);
       }
     });
 
@@ -69,17 +86,7 @@ export default function Navbar(): React.JSX.Element {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        const meta = session.user.user_metadata;
-        setUser({
-          email: session.user.email || "",
-          name:
-            meta?.full_name ||
-            meta?.name ||
-            `${meta?.first_name || ""} ${meta?.last_name || ""}`.trim() ||
-            session.user.email ||
-            "",
-          avatarUrl: meta?.avatar_url || meta?.picture || null,
-        });
+        mapUserSession(session.user);
       } else {
         setUser(null);
       }
@@ -167,6 +174,11 @@ export default function Navbar(): React.JSX.Element {
                     alt={user.name}
                     className={styles.avatarImg}
                     referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                        user.name
+                      )}&background=0d8bd9&color=fff&size=38`;
+                    }}
                   />
                 ) : (
                   <span className={styles.avatarInitials}>

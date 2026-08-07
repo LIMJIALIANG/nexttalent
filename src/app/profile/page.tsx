@@ -69,7 +69,7 @@ export default function ProfilePage(): React.JSX.Element {
           phone: meta?.phone || "",
           university: meta?.university || "",
           bio: meta?.bio || "",
-          avatarUrl: meta?.avatar_url || null,
+          avatarUrl: meta?.custom_avatar_url || null,
           googleAvatarUrl: meta?.picture || meta?.avatar_url || null,
           provider: identity?.provider || "email",
         };
@@ -120,8 +120,15 @@ export default function ProfilePage(): React.JSX.Element {
 
   // Helper to resolve the correct avatar
   const getDisplayAvatar = (): string => {
-    if (user.avatarUrl) return user.avatarUrl; // Manual custom upload
+    if (user.avatarUrl) return user.avatarUrl; // Custom upload (base64)
     if (user.googleAvatarUrl) return user.googleAvatarUrl; // Google avatar
+    
+    // Fallback: Google email avatar photo if email is Gmail
+    const isGmail = user.email.toLowerCase().endsWith("@gmail.com");
+    if (isGmail) {
+      return `https://profiles.google.com/s2/photos/profile/${user.email}`;
+    }
+
     const name = `${firstName} ${lastName}`.trim() || user.email;
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(
       name
@@ -175,7 +182,7 @@ export default function ProfilePage(): React.JSX.Element {
           // Update metadata in Supabase Auth
           const { error } = await supabase.auth.updateUser({
             data: {
-              avatar_url: resizedBase64,
+              custom_avatar_url: resizedBase64,
             },
           });
 
@@ -314,6 +321,12 @@ export default function ProfilePage(): React.JSX.Element {
                   alt="Profile Avatar"
                   className={styles.avatarImg}
                   referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    const name = `${firstName} ${lastName}`.trim() || user.email;
+                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                      name
+                    )}&background=0d8bd9&color=fff&size=150`;
+                  }}
                 />
                 <button
                   className={styles.avatarEditBtn}
