@@ -83,10 +83,7 @@
 
 /* ===== KPI Section ===== */
 .kpiSection {
-  padding: var(--space-8) 0;
-  margin-top: -30px;
-  position: relative;
-  z-index: 10;
+  padding: var(--space-12) 0 var(--space-3);
 }
 
 .kpiGrid {
@@ -133,7 +130,7 @@
 
 /* ===== Charts Section ===== */
 .chartsSection {
-  padding: var(--space-8) 0;
+  padding: var(--space-4) 0 var(--space-8);
 }
 
 .chartsGrid {
