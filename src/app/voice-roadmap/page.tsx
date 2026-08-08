@@ -24,6 +24,7 @@ interface SpeechRecognitionInstance extends EventTarget {
   lang: string;
   start: () => void;
   stop: () => void;
+  abort?: () => void;
   onresult: ((event: SpeechRecognitionEvent) => void) | null;
   onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
   onend: (() => void) | null;
@@ -59,6 +60,7 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
   const [activeUserId, setActiveUserId] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState<string>("");
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
+  const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const resultsRef = useRef<HTMLElement | null>(null);
 
   // Helper to get storage key per user
@@ -151,10 +153,33 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
 
       return () => {
         subscription.unsubscribe();
+        if (silenceTimerRef.current) {
+          clearTimeout(silenceTimerRef.current);
+        }
+        if (recognitionRef.current) {
+          try {
+            recognitionRef.current.abort?.() || recognitionRef.current.stop();
+          } catch {
+            // ignore
+          }
+        }
       };
     } else {
       fetchUserHistory(null);
     }
+
+    return () => {
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+      }
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort?.() || recognitionRef.current.stop();
+        } catch {
+          // ignore
+        }
+      }
+    };
   }, []);
 
   const transcriptRef = useRef<string>("");
@@ -162,6 +187,31 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
   useEffect(() => {
     transcriptRef.current = transcript;
   }, [transcript]);
+
+  const stopListening = useCallback((): void => {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch {
+        // ignore
+      }
+      recognitionRef.current = null;
+    }
+    setIsListening(false);
+  }, []);
+
+  const resetSilenceTimer = useCallback((): void => {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+    }
+    silenceTimerRef.current = setTimeout(() => {
+      stopListening();
+    }, 3000);
+  }, [stopListening]);
 
   const startListening = useCallback((): void => {
     setError("");
@@ -184,10 +234,22 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
           (initialText && !initialText.endsWith(" ") ? " " : "") +
           speechText
       );
+      // Reset the 3-second silence timer whenever speech is detected
+      resetSilenceTimer();
     };
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      console.error("Speech recognition error:", event.error);
+      // "aborted" occurs when reset/stopped manually; "no-speech" occurs on quiet timeouts.
+      if (event.error === "aborted" || event.error === "no-speech") {
+        if (silenceTimerRef.current) {
+          clearTimeout(silenceTimerRef.current);
+          silenceTimerRef.current = null;
+        }
+        setIsListening(false);
+        return;
+      }
+
+      console.warn("Speech recognition notice:", event.error);
       if (event.error === "not-allowed") {
         setError(
           "Microphone access denied. Please allow microphone permissions in your browser."
@@ -195,24 +257,27 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
       } else {
         setError(`Speech recognition error: ${event.error}`);
       }
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
       setIsListening(false);
     };
 
     recognition.onend = () => {
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
       setIsListening(false);
     };
 
     recognitionRef.current = recognition;
     recognition.start();
     setIsListening(true);
-  }, []);
-
-  const stopListening = useCallback((): void => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
-    setIsListening(false);
-  }, []);
+    // Start initial 3s silence countdown
+    resetSilenceTimer();
+  }, [resetSilenceTimer]);
 
   const generateRoadmap = async (): Promise<void> => {
     if (!transcript.trim()) {
@@ -353,7 +418,25 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
   };
 
   const resetAll = (): void => {
+    // If speech recognition is actively running, abort and stop immediately
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onend = null;
+        recognitionRef.current.abort?.() || recognitionRef.current.stop();
+      } catch {
+        // ignore
+      }
+      recognitionRef.current = null;
+    }
+    setIsListening(false);
     setTranscript("");
+    transcriptRef.current = "";
     setRoadmap(null);
     setError("");
     setToastMsg("");
@@ -425,7 +508,40 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
                       </>
                     )}
                     <span className={styles.micIcon}>
-                      {isListening ? "⏹" : "🎤"}
+                      {isListening ? (
+                        <svg
+                          width="32"
+                          height="32"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          className={styles.stopIcon}
+                        >
+                          <rect
+                            x="4"
+                            y="4"
+                            width="16"
+                            height="16"
+                            rx="4"
+                            fill="url(#brightAccentGrad)"
+                          />
+                          <defs>
+                            <linearGradient
+                              id="brightAccentGrad"
+                              x1="4"
+                              y1="4"
+                              x2="20"
+                              y2="20"
+                              gradientUnits="userSpaceOnUse"
+                            >
+                              <stop stopColor="#00F2FE" />
+                              <stop offset="1" stopColor="#4FACFE" />
+                            </linearGradient>
+                          </defs>
+                        </svg>
+                      ) : (
+                        "🎤"
+                      )}
                     </span>
                   </button>
                   <p className={styles.micLabel}>

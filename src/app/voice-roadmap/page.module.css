@@ -101,6 +101,18 @@
   font-size: 2.5rem;
   position: relative;
   z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stopIcon {
+  filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.7));
+  transition: transform var(--transition-fast);
+}
+
+.micButton:hover .stopIcon {
+  transform: scale(1.1);
 }
 
 .pulseRing,
