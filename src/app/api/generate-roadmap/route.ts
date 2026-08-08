@@ -49,23 +49,38 @@ Generate between 5 and 8 roadmap steps. Be specific to the Malaysian job market 
 
     const roadmapData: RoadmapData = JSON.parse(cleanedText);
 
-    // Store in Supabase if available (for analytics)
+    let sessionId: string | undefined;
+
+    // Store in Supabase if available (for analytics & user history)
     if (supabase) {
       try {
-        await supabase.from("roadmap_sessions").insert({
-          user_id: userId || null,
-          transcript: transcript,
-          career_title: roadmapData.careerTitle,
-          required_skills: roadmapData.requiredSkills,
-          steps_count: roadmapData.roadmapSteps.length,
-          created_at: new Date().toISOString(),
-        });
+        const { data: insertedRow, error: insertError } = await supabase
+          .from("roadmap_sessions")
+          .insert({
+            user_id: userId || null,
+            transcript: transcript,
+            career_title: roadmapData.careerTitle,
+            required_skills: roadmapData.requiredSkills,
+            steps_count: roadmapData.roadmapSteps.length,
+            roadmap_data: roadmapData,
+            created_at: new Date().toISOString(),
+          })
+          .select("id")
+          .single();
+
+        if (!insertError && insertedRow) {
+          sessionId = insertedRow.id;
+        }
       } catch (dbError) {
         console.warn("Failed to store analytics data:", (dbError as Error).message);
       }
     }
 
-    return NextResponse.json({ success: true, data: roadmapData });
+    return NextResponse.json({
+      success: true,
+      data: roadmapData,
+      sessionId,
+    });
   } catch (error) {
     console.error("Roadmap generation error:", error);
     return NextResponse.json(

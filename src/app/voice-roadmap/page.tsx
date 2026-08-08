@@ -36,6 +36,16 @@ declare global {
   }
 }
 
+interface SavedRoadmapRecord {
+  id: string;
+  transcript: string;
+  career_title: string;
+  required_skills?: string[];
+  steps_count?: number;
+  roadmap_data?: RoadmapData;
+  created_at: string;
+}
+
 export default function VoiceRoadmapPage(): React.JSX.Element {
   const [isListening, setIsListening] = useState<boolean>(false);
   const [transcript, setTranscript] = useState<string>("");
@@ -43,7 +53,74 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
   const [roadmap, setRoadmap] = useState<RoadmapData | null>(null);
   const [error, setError] = useState<string>("");
   const [speechSupported, setSpeechSupported] = useState<boolean>(true);
+  const [savedRoadmaps, setSavedRoadmaps] = useState<SavedRoadmapRecord[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState<boolean>(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [activeUserId, setActiveUserId] = useState<string | null>(null);
+  const [toastMsg, setToastMsg] = useState<string>("");
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
+  const resultsRef = useRef<HTMLElement | null>(null);
+
+  // Helper to get storage key per user
+  const getStorageKey = (uid: string | null): string => {
+    return uid ? `nextgen_saved_roadmaps_${uid}` : "nextgen_saved_roadmaps_guest";
+  };
+
+  // Fetch saved roadmaps strictly isolated per user
+  const fetchUserHistory = async (userId: string | null): Promise<void> => {
+    setIsLoadingHistory(true);
+    setSavedRoadmaps([]); // Clean slate immediately
+
+    // Remove legacy unpartitioned storage key if present
+    try {
+      localStorage.removeItem("nextgen_saved_roadmaps");
+    } catch {
+      // ignore
+    }
+
+    let remoteRecords: SavedRoadmapRecord[] = [];
+
+    if (userId) {
+      try {
+        const response = await fetch(`/api/user-roadmaps?userId=${userId}`);
+        const data = await response.json();
+        if (data.success && Array.isArray(data.data)) {
+          remoteRecords = data.data;
+        }
+      } catch (err) {
+        console.warn("Failed to fetch remote history:", err);
+      }
+    }
+
+    // Read user-specific local storage cache
+    try {
+      const storageKey = getStorageKey(userId);
+      const localDataStr = localStorage.getItem(storageKey);
+      if (localDataStr) {
+        const localRecords: SavedRoadmapRecord[] = JSON.parse(localDataStr);
+        const combined = [...remoteRecords];
+        localRecords.forEach((localRec) => {
+          if (
+            !combined.some(
+              (r) =>
+                r.id === localRec.id ||
+                (r.transcript === localRec.transcript &&
+                  r.created_at === localRec.created_at)
+            )
+          ) {
+            combined.push(localRec);
+          }
+        });
+        setSavedRoadmaps(combined);
+      } else {
+        setSavedRoadmaps(remoteRecords);
+      }
+    } catch {
+      setSavedRoadmaps(remoteRecords);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
 
   useEffect(() => {
     if (
@@ -52,6 +129,31 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
       !("SpeechRecognition" in window)
     ) {
       setSpeechSupported(false);
+    }
+
+    const supabase = getSupabaseBrowserClient();
+    if (supabase) {
+      // 1. Initial session load
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        const uid = session?.user?.id || null;
+        setActiveUserId(uid);
+        fetchUserHistory(uid);
+      });
+
+      // 2. Auth state change listener (switches history when user logs in/out)
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((_event, session) => {
+        const uid = session?.user?.id || null;
+        setActiveUserId(uid);
+        fetchUserHistory(uid);
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    } else {
+      fetchUserHistory(null);
     }
   }, []);
 
@@ -121,13 +223,15 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
     setIsProcessing(true);
     setError("");
     setRoadmap(null);
+    setToastMsg("");
 
     try {
       const supabase = getSupabaseBrowserClient();
-      let userId: string | undefined;
-      if (supabase) {
+      let userId: string | undefined = activeUserId || undefined;
+      if (supabase && !userId) {
         const { data: { session } } = await supabase.auth.getSession();
         userId = session?.user?.id;
+        setActiveUserId(userId || null);
       }
 
       const response = await fetch("/api/generate-roadmap", {
@@ -142,7 +246,38 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
         throw new Error(data.error || "Failed to generate roadmap");
       }
 
-      setRoadmap(data.data as RoadmapData);
+      const generatedData = data.data as RoadmapData;
+      setRoadmap(generatedData);
+
+      // Add to saved records list for this user
+      const newRecord: SavedRoadmapRecord = {
+        id: data.sessionId || `local-${Date.now()}`,
+        transcript: transcript.trim(),
+        career_title: generatedData.careerTitle,
+        required_skills: generatedData.requiredSkills,
+        steps_count: generatedData.roadmapSteps.length,
+        roadmap_data: generatedData,
+        created_at: new Date().toISOString(),
+      };
+
+      const updatedHistory = [
+        newRecord,
+        ...savedRoadmaps.filter((r) => r.id !== newRecord.id),
+      ];
+      setSavedRoadmaps(updatedHistory);
+      try {
+        localStorage.setItem(
+          getStorageKey(userId || null),
+          JSON.stringify(updatedHistory)
+        );
+      } catch {
+        // storage quota
+      }
+
+      setToastMsg(
+        `✨ Roadmap for "${generatedData.careerTitle}" created and auto-saved!`
+      );
+      setTimeout(() => setToastMsg(""), 4000);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -150,11 +285,94 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
     }
   };
 
+  const handleReviewRoadmap = (record: SavedRoadmapRecord): void => {
+    setTranscript(record.transcript);
+    if (record.roadmap_data) {
+      setRoadmap(record.roadmap_data);
+    } else {
+      // Reconstruct basic roadmap if only summary/skills available
+      setRoadmap({
+        careerTitle: record.career_title,
+        summary: `Career roadmap generated from your query: "${record.transcript}"`,
+        roadmapSteps: [],
+        requiredSkills: record.required_skills || [],
+        industryOutlook: "Refer to steps for industry outlook in Malaysia.",
+      });
+    }
+    setError("");
+    setToastMsg(`📂 Loaded saved roadmap: ${record.career_title}`);
+    setTimeout(() => setToastMsg(""), 3500);
+
+    // Scroll to roadmap view
+    setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  };
+
+  const handleDeleteRoadmap = async (
+    recordId: string,
+    careerTitle: string
+  ): Promise<void> => {
+    if (
+      !confirm(
+        `Are you sure you want to delete the saved roadmap for "${careerTitle}"?`
+      )
+    ) {
+      return;
+    }
+
+    setDeletingId(recordId);
+    try {
+      await fetch(
+        `/api/user-roadmaps?id=${recordId}${
+          activeUserId ? `&userId=${activeUserId}` : ""
+        }`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      const updated = savedRoadmaps.filter((r) => r.id !== recordId);
+      setSavedRoadmaps(updated);
+      try {
+        localStorage.setItem(
+          getStorageKey(activeUserId),
+          JSON.stringify(updated)
+        );
+      } catch {
+        // quota
+      }
+
+      setToastMsg(`🗑️ Deleted roadmap for "${careerTitle}".`);
+      setTimeout(() => setToastMsg(""), 3500);
+    } catch (err) {
+      setError(`Failed to delete roadmap: ${(err as Error).message}`);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const resetAll = (): void => {
     setTranscript("");
     setRoadmap(null);
     setError("");
+    setToastMsg("");
     setIsProcessing(false);
+  };
+
+  const formatDate = (isoString: string): string => {
+    try {
+      const date = new Date(isoString);
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      });
+    } catch {
+      return "Recently";
+    }
   };
 
   return (
@@ -250,23 +468,140 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
                   "✨ Generate My Roadmap"
                 )}
               </button>
-              <button className="btn btn-ghost" onClick={resetAll} id="reset-btn">
+              <button
+                className="btn btn-ghost"
+                onClick={resetAll}
+                id="reset-btn"
+              >
                 Reset
               </button>
             </div>
+
+            {toastMsg && (
+              <div className={styles.toastSuccess}>
+                <span>✓</span> {toastMsg}
+              </div>
+            )}
 
             {error && (
               <div className={styles.errorMsg}>
                 <span>⚠️</span> {error}
               </div>
             )}
+
+            {/* Saved Roadmaps History (Review & Delete) */}
+            <div className={styles.historySection}>
+              <div className={styles.historyHeader}>
+                <div className={styles.historyTitle}>
+                  <span>📜</span> Your Previous Roadmap Records
+                  <span className={styles.historyCountBadge}>
+                    {savedRoadmaps.length}{" "}
+                    {savedRoadmaps.length === 1 ? "Record" : "Records"}
+                  </span>
+                </div>
+              </div>
+
+              {isLoadingHistory ? (
+                <div className={styles.historyLoading}>
+                  <div className="spinner" />
+                  <span>Loading previous roadmap records...</span>
+                </div>
+              ) : savedRoadmaps.length === 0 ? (
+                <div className={styles.emptyHistory}>
+                  No previous roadmap records found. Speak or type your career
+                  interests above to generate and auto-save your first roadmap!
+                </div>
+              ) : (
+                <div className={styles.historyList}>
+                  {savedRoadmaps.map((rec) => (
+                    <div key={rec.id} className={styles.historyCard}>
+                      <div className={styles.historyCardTop}>
+                        <div className={styles.historyCardTitle}>
+                          <span>🎯</span> {rec.career_title}
+                        </div>
+                        <div className={styles.historyCardMeta}>
+                          {rec.steps_count ? (
+                            <span className="badge badge-primary">
+                              {rec.steps_count} Steps
+                            </span>
+                          ) : null}
+                          <span className={styles.historyCardDate}>
+                            🕒 {formatDate(rec.created_at)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div
+                        className={styles.historyTranscriptSnippet}
+                        title={rec.transcript}
+                      >
+                        &ldquo;{rec.transcript}&rdquo;
+                      </div>
+
+                      {rec.required_skills &&
+                        rec.required_skills.length > 0 && (
+                          <div className={styles.historySkillsRow}>
+                            {rec.required_skills
+                              .slice(0, 4)
+                              .map((skill, idx) => (
+                                <span
+                                  key={idx}
+                                  className={styles.historySkillPill}
+                                >
+                                  {skill}
+                                </span>
+                              ))}
+                            {rec.required_skills.length > 4 && (
+                              <span className={styles.historySkillPill}>
+                                +{rec.required_skills.length - 4} more
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                      <div className={styles.historyCardActions}>
+                        <button
+                          type="button"
+                          className={`btn btn-secondary btn-sm ${styles.reviewBtn}`}
+                          onClick={() => handleReviewRoadmap(rec)}
+                          id={`review-btn-${rec.id}`}
+                        >
+                          👁️ Review / Load
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.deleteBtn}
+                          onClick={() =>
+                            handleDeleteRoadmap(rec.id, rec.career_title)
+                          }
+                          disabled={deletingId === rec.id}
+                          id={`delete-btn-${rec.id}`}
+                        >
+                          {deletingId === rec.id ? (
+                            <>
+                              <span
+                                className="spinner"
+                                style={{ width: 12, height: 12 }}
+                              />{" "}
+                              Deleting...
+                            </>
+                          ) : (
+                            "🗑️ Delete"
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>
 
       {/* Roadmap Results */}
       {roadmap && (
-        <section className={styles.results}>
+        <section className={styles.results} ref={resultsRef}>
           <div className="container">
             {/* Career Header */}
             <div className={styles.resultHeader}>

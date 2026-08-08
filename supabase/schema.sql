@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS roadmap_sessions (
   career_title TEXT NOT NULL,
   required_skills TEXT[] DEFAULT '{}',
   steps_count INTEGER DEFAULT 0,
+  roadmap_data JSONB,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -37,8 +38,14 @@ CREATE POLICY "Allow individual insert to roadmap_sessions" ON roadmap_sessions
 CREATE POLICY "Allow individual select from roadmap_sessions" ON roadmap_sessions
   FOR SELECT USING (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);
 
+CREATE POLICY "Allow individual delete from roadmap_sessions" ON roadmap_sessions
+  FOR DELETE USING (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);
+
 CREATE POLICY "Allow individual insert to skill_analyses" ON skill_analyses
   FOR INSERT WITH CHECK (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);
 
 CREATE POLICY "Allow individual select from skill_analyses" ON skill_analyses
   FOR SELECT USING (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);
+
+CREATE POLICY "Allow individual delete from skill_analyses" ON skill_analyses
+  FOR DELETE USING (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);
