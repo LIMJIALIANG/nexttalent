@@ -10,10 +10,12 @@ export interface ConfirmModalProps {
   itemName?: string;
   itemIcon?: string;
   confirmLabel?: string;
+  secondaryConfirmLabel?: string;
   cancelLabel?: string;
-  variant?: "danger" | "warning" | "info";
+  variant?: "danger" | "warning" | "info" | "save";
   isLoading?: boolean;
   onConfirm: () => void | Promise<void>;
+  onSecondaryConfirm?: () => void | Promise<void>;
   onCancel: () => void;
 }
 
@@ -24,10 +26,12 @@ export default function ConfirmModal({
   itemName,
   itemIcon = "🎯",
   confirmLabel = "Confirm",
+  secondaryConfirmLabel,
   cancelLabel = "Cancel",
   variant = "danger",
   isLoading = false,
   onConfirm,
+  onSecondaryConfirm,
   onCancel,
 }: ConfirmModalProps): React.JSX.Element | null {
   // Handle ESC key to close
@@ -60,6 +64,8 @@ export default function ConfirmModal({
         return "🗑️";
       case "warning":
         return "⚠️";
+      case "save":
+        return "💾";
       case "info":
         return "ℹ️";
       default:
@@ -98,14 +104,28 @@ export default function ConfirmModal({
         )}
 
         <div className={styles.actions}>
-          <button
-            type="button"
-            className={styles.cancelBtn}
-            onClick={onCancel}
-            disabled={isLoading}
-          >
-            {cancelLabel}
-          </button>
+          {cancelLabel && (
+            <button
+              type="button"
+              className={styles.cancelBtn}
+              onClick={onCancel}
+              disabled={isLoading}
+            >
+              {cancelLabel}
+            </button>
+          )}
+
+          {secondaryConfirmLabel && onSecondaryConfirm && (
+            <button
+              type="button"
+              className={styles.secondaryBtn}
+              onClick={onSecondaryConfirm}
+              disabled={isLoading}
+            >
+              {secondaryConfirmLabel}
+            </button>
+          )}
+
           <button
             type="button"
             className={styles.confirmBtn}

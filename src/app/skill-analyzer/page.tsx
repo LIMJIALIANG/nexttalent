@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, Suspense, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useEffect, useMemo, Suspense, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ConfirmModal, { ConfirmModalProps } from "@/components/ConfirmModal";
 import {
   RoadmapData,
   SkillAnalysis,
@@ -29,9 +30,14 @@ interface SavedRoadmapRecord {
 }
 
 function SkillAnalyzerContent(): React.JSX.Element {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+  // Leave page confirmation states
+  const [pendingNavigationUrl, setPendingNavigationUrl] = useState<string | null>(null);
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState<boolean>(false);
 
   // Roadmap details
   const [roadmap, setRoadmap] = useState<RoadmapData | null>(null);
@@ -51,6 +57,66 @@ function SkillAnalyzerContent(): React.JSX.Element {
   const [newSkill, setNewSkill] = useState<string>("");
   const [achievementsList, setAchievementsList] = useState<string[]>([]);
 
+  // Resume File & Preview states
+  const [resumeFilePreview, setResumeFilePreview] = useState<string | null>(null);
+  const [resumeFileName, setResumeFileName] = useState<string | null>(null);
+  const [resumeFileType, setResumeFileType] = useState<string | null>(null);
+  const [resumeFileSize, setResumeFileSize] = useState<number | null>(null);
+  const [isModalPreviewOpen, setIsModalPreviewOpen] = useState<boolean>(false);
+
+  // Save / Dirty / Confirmation States — snapshot-based comparison
+  const emptySnapshot = JSON.stringify({ pName: "", obj: "", edu: [], exp: [], proj: [], sk: [], ach: [], fName: null, fType: null, fSize: null });
+  const savedSnapshotRef = useRef<string>(emptySnapshot);
+  const [isSavingResume, setIsSavingResume] = useState<boolean>(false);
+  const [saveStatusMessage, setSaveStatusMessage] = useState<string>("");
+
+  // Build a deterministic JSON string from all editable resume fields
+  const buildResumeSnapshot = (
+    pName: string, obj: string,
+    edu: ResumeEducation[], exp: ResumeExperience[],
+    proj: ResumeProject[], sk: string[], ach: string[],
+    fName: string | null, fType: string | null, fSize: number | null,
+  ): string => {
+    return JSON.stringify({ pName, obj, edu, exp, proj, sk, ach, fName, fType, fSize });
+  };
+
+  const currentSnapshot = useMemo(
+    () => buildResumeSnapshot(
+      personalName, objective, educationList, experienceList,
+      projectsList, skillsList, achievementsList,
+      resumeFileName, resumeFileType, resumeFileSize,
+    ),
+    [personalName, objective, educationList, experienceList,
+     projectsList, skillsList, achievementsList,
+     resumeFileName, resumeFileType, resumeFileSize]
+  );
+
+  // isDirty is true only when current fields genuinely differ from saved state
+  const isDirty = currentSnapshot !== savedSnapshotRef.current;
+
+  // Helper to mark current state as the "saved" baseline
+  const markAsSaved = (): void => {
+    savedSnapshotRef.current = currentSnapshot;
+  };
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    itemName?: string;
+    itemIcon?: string;
+    confirmLabel: string;
+    cancelLabel?: string;
+    variant: "danger" | "warning" | "info" | "save";
+    onConfirm: () => void | Promise<void>;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    confirmLabel: "Confirm",
+    variant: "danger",
+    onConfirm: () => {},
+  });
+
   // Scanning & analysis states
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [scanSuccess, setScanSuccess] = useState<string>("");
@@ -60,6 +126,83 @@ function SkillAnalyzerContent(): React.JSX.Element {
 
   const getStorageKey = (uid: string | null): string => {
     return uid ? `nextgen_saved_roadmaps_${uid}` : "nextgen_saved_roadmaps_guest";
+  };
+
+  const getResumeCacheKey = (uid: string | null): string => {
+    return uid ? `nextgen_cached_resume_${uid}` : "nextgen_cached_resume_guest";
+  };
+
+  const formatFileSize = (bytes?: number | null): string => {
+    if (!bytes) return "";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const loadResumeCache = (uid: string | null): void => {
+    try {
+      const key = getResumeCacheKey(uid);
+      const cachedStr = localStorage.getItem(key);
+      if (cachedStr) {
+        const cached = JSON.parse(cachedStr);
+        if (cached.personalName) setPersonalName(cached.personalName);
+        if (cached.objective) setObjective(cached.objective);
+        if (cached.educationList && Array.isArray(cached.educationList)) setEducationList(cached.educationList);
+        if (cached.experienceList && Array.isArray(cached.experienceList)) setExperienceList(cached.experienceList);
+        if (cached.projectsList && Array.isArray(cached.projectsList)) setProjectsList(cached.projectsList);
+        if (cached.skillsList && Array.isArray(cached.skillsList)) setSkillsList(cached.skillsList);
+        if (cached.achievementsList && Array.isArray(cached.achievementsList)) setAchievementsList(cached.achievementsList);
+        if (cached.resumeFilePreview) setResumeFilePreview(cached.resumeFilePreview);
+        if (cached.resumeFileName) setResumeFileName(cached.resumeFileName);
+        if (cached.resumeFileType) setResumeFileType(cached.resumeFileType);
+        if (cached.resumeFileSize) setResumeFileSize(cached.resumeFileSize);
+        // Set the saved baseline from cache so isDirty starts as false
+        savedSnapshotRef.current = buildResumeSnapshot(
+          cached.personalName || "", cached.objective || "",
+          cached.educationList || [], cached.experienceList || [],
+          cached.projectsList || [], cached.skillsList || [],
+          cached.achievementsList || [],
+          cached.resumeFileName || null, cached.resumeFileType || null,
+          cached.resumeFileSize || null,
+        );
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  const fetchUserResume = async (userId: string | null): Promise<void> => {
+    if (!userId) return;
+    try {
+      const res = await fetch(`/api/user-resume?userId=${userId}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data) {
+          const dbResume = json.data;
+          if (dbResume.personal_name) setPersonalName(dbResume.personal_name);
+          if (dbResume.objective) setObjective(dbResume.objective);
+          if (dbResume.education && Array.isArray(dbResume.education)) setEducationList(dbResume.education);
+          if (dbResume.experience && Array.isArray(dbResume.experience)) setExperienceList(dbResume.experience);
+          if (dbResume.projects && Array.isArray(dbResume.projects)) setProjectsList(dbResume.projects);
+          if (dbResume.skills && Array.isArray(dbResume.skills)) setSkillsList(dbResume.skills);
+          if (dbResume.achievements && Array.isArray(dbResume.achievements)) setAchievementsList(dbResume.achievements);
+          if (dbResume.resume_file_name) setResumeFileName(dbResume.resume_file_name);
+          if (dbResume.resume_file_type) setResumeFileType(dbResume.resume_file_type);
+          if (dbResume.resume_file_size) setResumeFileSize(dbResume.resume_file_size);
+          // Set saved baseline from DB data so isDirty correctly starts as false
+          savedSnapshotRef.current = buildResumeSnapshot(
+            dbResume.personal_name || "", dbResume.objective || "",
+            dbResume.education || [], dbResume.experience || [],
+            dbResume.projects || [], dbResume.skills || [],
+            dbResume.achievements || [],
+            dbResume.resume_file_name || null, dbResume.resume_file_type || null,
+            dbResume.resume_file_size || null,
+          );
+        }
+      }
+    } catch (e) {
+      console.warn("Could not fetch DB resume:", e);
+    }
   };
 
   const fetchUserHistory = async (userId: string | null): Promise<void> => {
@@ -145,6 +288,8 @@ function SkillAnalyzerContent(): React.JSX.Element {
         const uid = session?.user?.id || null;
         setActiveUserId(uid);
         fetchUserHistory(uid);
+        loadResumeCache(uid);
+        fetchUserResume(uid);
       });
 
       const {
@@ -153,6 +298,8 @@ function SkillAnalyzerContent(): React.JSX.Element {
         const uid = session?.user?.id || null;
         setActiveUserId(uid);
         fetchUserHistory(uid);
+        loadResumeCache(uid);
+        fetchUserResume(uid);
       });
 
       return () => {
@@ -160,8 +307,153 @@ function SkillAnalyzerContent(): React.JSX.Element {
       };
     } else {
       fetchUserHistory(null);
+      loadResumeCache(null);
     }
   }, [searchParams]);
+
+  // Persist form & resume cache on changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        const key = getResumeCacheKey(activeUserId);
+        const payload = {
+          personalName,
+          objective,
+          educationList,
+          experienceList,
+          projectsList,
+          skillsList,
+          achievementsList,
+          resumeFilePreview,
+          resumeFileName,
+          resumeFileType,
+          resumeFileSize,
+          savedAt: new Date().toISOString(),
+        };
+        localStorage.setItem(key, JSON.stringify(payload));
+      } catch (err) {
+        console.warn("Could not cache resume data:", err);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [
+    activeUserId,
+    personalName,
+    objective,
+    educationList,
+    experienceList,
+    projectsList,
+    skillsList,
+    achievementsList,
+    resumeFilePreview,
+    resumeFileName,
+    resumeFileType,
+    resumeFileSize,
+  ]);
+
+  // Prompt confirmation on leaving if there are unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "You have unsaved changes in your resume profile.";
+        return e.returnValue;
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
+
+  // Intercept in-app link navigation to prompt user to save or discard
+  useEffect(() => {
+    const handleDocumentClick = (e: MouseEvent) => {
+      if (!isDirty) return;
+
+      const target = (e.target as HTMLElement).closest("a");
+      if (!target) return;
+
+      const href = target.getAttribute("href");
+      if (!href) return;
+
+      if (
+        href.startsWith("#") ||
+        href.startsWith("javascript:") ||
+        href.startsWith("mailto:") ||
+        href.startsWith("tel:")
+      ) {
+        return;
+      }
+
+      const currentPath = window.location.pathname;
+      if (href === currentPath || href === "/skill-analyzer") {
+        return;
+      }
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      setPendingNavigationUrl(href);
+      setIsLeaveModalOpen(true);
+    };
+
+    document.addEventListener("click", handleDocumentClick, true);
+    return () => {
+      document.removeEventListener("click", handleDocumentClick, true);
+    };
+  }, [isDirty]);
+
+  const handleSaveResume = async (): Promise<boolean> => {
+    setIsSavingResume(true);
+    setSaveStatusMessage("");
+    setError("");
+
+    try {
+      const resumePayload = {
+        personalName,
+        objective,
+        educationList,
+        experienceList,
+        projectsList,
+        skillsList,
+        achievementsList,
+        resumeFileName,
+        resumeFileType,
+        resumeFileSize,
+      };
+
+      // 1. Save to Database via API
+      if (activeUserId) {
+        await fetch("/api/user-resume", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: activeUserId, resumeData: resumePayload }),
+        });
+      }
+
+      // 2. Cache to local storage
+      const key = getResumeCacheKey(activeUserId);
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          ...resumePayload,
+          resumeFilePreview,
+          savedAt: new Date().toISOString(),
+        })
+      );
+
+      markAsSaved();
+      setSaveStatusMessage("✓ Resume saved to database & local profile!");
+      setTimeout(() => setSaveStatusMessage(""), 4000);
+      return true;
+    } catch (err) {
+      console.error("Save resume error:", err);
+      setError("Failed to save resume to database.");
+      return false;
+    } finally {
+      setIsSavingResume(false);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -227,6 +519,12 @@ function SkillAnalyzerContent(): React.JSX.Element {
           const base64Data = base64String.split(",")[1];
           const mimeType = file.type;
 
+          // Set file preview and metadata
+          setResumeFilePreview(base64String);
+          setResumeFileName(file.name);
+          setResumeFileType(mimeType);
+          setResumeFileSize(file.size);
+
           const response = await fetch("/api/parse-resume", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -249,17 +547,30 @@ function SkillAnalyzerContent(): React.JSX.Element {
           setSkillsList(parsed.skills || []);
           setAchievementsList(parsed.achievements || []);
 
+
           setScanSuccess(`Successfully scanned and parsed resume: ${file.name}`);
         } catch (err) {
           setError((err as Error).message);
         } finally {
           setIsScanning(false);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+          }
         }
       };
     } catch (err) {
       setError((err as Error).message);
       setIsScanning(false);
     }
+  };
+
+  const handleRemoveResume = (): void => {
+    setResumeFilePreview(null);
+    setResumeFileName(null);
+    setResumeFileType(null);
+    setResumeFileSize(null);
+    setScanSuccess("");
+
   };
 
   const triggerFileSelect = (): void => {
@@ -272,9 +583,11 @@ function SkillAnalyzerContent(): React.JSX.Element {
       ...educationList,
       { institution: "", degree: "", details: "", duration: "" },
     ]);
+
   };
   const removeEducation = (index: number): void => {
     setEducationList(educationList.filter((_, i) => i !== index));
+
   };
   const updateEducation = (
     index: number,
@@ -284,6 +597,7 @@ function SkillAnalyzerContent(): React.JSX.Element {
     const updated = [...educationList];
     updated[index] = { ...updated[index], [field]: value };
     setEducationList(updated);
+
   };
 
   const addExperience = (): void => {
@@ -291,9 +605,11 @@ function SkillAnalyzerContent(): React.JSX.Element {
       ...experienceList,
       { company: "", role: "", description: "", duration: "" },
     ]);
+
   };
   const removeExperience = (index: number): void => {
     setExperienceList(experienceList.filter((_, i) => i !== index));
+
   };
   const updateExperience = (
     index: number,
@@ -303,13 +619,16 @@ function SkillAnalyzerContent(): React.JSX.Element {
     const updated = [...experienceList];
     updated[index] = { ...updated[index], [field]: value };
     setExperienceList(updated);
+
   };
 
   const addProject = (): void => {
     setProjectsList([...projectsList, { title: "", description: "" }]);
+
   };
   const removeProject = (index: number): void => {
     setProjectsList(projectsList.filter((_, i) => i !== index));
+
   };
   const updateProject = (
     index: number,
@@ -319,28 +638,91 @@ function SkillAnalyzerContent(): React.JSX.Element {
     const updated = [...projectsList];
     updated[index] = { ...updated[index], [field]: value };
     setProjectsList(updated);
+
   };
 
   const addSkill = (): void => {
     if (newSkill.trim() && !skillsList.includes(newSkill.trim())) {
       setSkillsList([...skillsList, newSkill.trim()]);
       setNewSkill("");
+
     }
   };
   const removeSkill = (skill: string): void => {
     setSkillsList(skillsList.filter((s) => s !== skill));
+
   };
 
   const addAchievement = (): void => {
     setAchievementsList([...achievementsList, ""]);
+
   };
   const removeAchievement = (index: number): void => {
     setAchievementsList(achievementsList.filter((_, i) => i !== index));
+
   };
   const updateAchievement = (index: number, value: string): void => {
     const updated = [...achievementsList];
     updated[index] = value;
     setAchievementsList(updated);
+
+  };
+
+  // Section Clear Handlers
+  const handleClearPersonal = (): void => {
+    setPersonalName("");
+    setObjective("");
+
+  };
+
+  const handleClearEducation = (): void => {
+    setEducationList([]);
+
+  };
+
+  const handleClearExperience = (): void => {
+    setExperienceList([]);
+
+  };
+
+  const handleClearProjects = (): void => {
+    setProjectsList([]);
+
+  };
+
+  const handleClearSkills = (): void => {
+    setSkillsList([]);
+
+  };
+
+  const handleClearAchievements = (): void => {
+    setAchievementsList([]);
+
+  };
+
+  const promptClearAll = (): void => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Clear All Resume Sections?",
+      message:
+        "Are you sure you want to reset all candidate inputs across all sections? This action will empty all personal, education, experience, project, skill, and certificate fields.",
+      itemName: "Entire Resume Profile",
+      itemIcon: "🧹",
+      confirmLabel: "Yes, Clear All",
+      cancelLabel: "Keep Data",
+      variant: "danger",
+      onConfirm: () => {
+        setPersonalName("");
+        setObjective("");
+        setEducationList([]);
+        setExperienceList([]);
+        setProjectsList([]);
+        setSkillsList([]);
+        setAchievementsList([]);
+
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+      },
+    });
   };
 
   // Compile fields to plain text for API analysis
@@ -611,27 +993,107 @@ function SkillAnalyzerContent(): React.JSX.Element {
             </div>
           )}
 
-          {/* 1. PDF / Image Resume Scanner */}
+          {/* 1. PDF / Image Resume Scanner & Viewer */}
           <div className={styles.scannerCard}>
             <div className={styles.scannerTitle}>📷 AI Resume File Scanner</div>
             <div className={styles.scannerDesc}>
-              Upload your resume as a **PDF or PNG/JPG image** to automatically
-              extract details, prefill all form fields, and correct any inputs
-              before matching.
+              Upload your resume as a <strong>PDF or PNG/JPG image</strong> to automatically
+              extract details, prefill all form fields, and view your document.
             </div>
 
-            <div className={styles.fileUploadArea} onClick={triggerFileSelect}>
-              <span className={styles.fileUploadIcon}>📁</span>
-              <span>{isScanning ? "Scanning Document with Gemini AI..." : "Click or Drag to Upload Resume File"}</span>
-              <input
-                type="file"
-                ref={fileInputRef}
-                className={styles.fileInput}
-                accept="application/pdf,image/png,image/jpeg"
-                onChange={handleFileUpload}
-                disabled={isScanning}
-              />
-            </div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              className={styles.fileInput}
+              accept="application/pdf,image/png,image/jpeg"
+              onChange={handleFileUpload}
+              disabled={isScanning}
+            />
+
+            {resumeFilePreview ? (
+              <div className={styles.resumeViewerCard}>
+                <div className={styles.resumeViewerHeader}>
+                  <div className={styles.resumeFileDetails}>
+                    <span className={styles.resumeFileIcon}>
+                      {resumeFileType === "application/pdf" || resumeFilePreview.startsWith("data:application/pdf")
+                        ? "📄"
+                        : "🖼️"}
+                    </span>
+                    <div>
+                      <div className={styles.resumeFileName}>{resumeFileName || "Uploaded Resume"}</div>
+                      <div className={styles.resumeFileMeta}>
+                        <span className={styles.resumeFileBadge}>
+                          {resumeFileType === "application/pdf" || resumeFilePreview.startsWith("data:application/pdf")
+                            ? "PDF Document"
+                            : "Image"}
+                        </span>
+                        {resumeFileSize ? <span>• {formatFileSize(resumeFileSize)}</span> : null}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={styles.resumeActions}>
+                    <button
+                      type="button"
+                      className={styles.reuploadBtn}
+                      onClick={triggerFileSelect}
+                      disabled={isScanning}
+                      id="reupload-resume-btn"
+                    >
+                      <span>🔄</span> Re-upload / Replace
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.previewActionBtn}
+                      onClick={() => setIsModalPreviewOpen(true)}
+                      title="View Fullscreen"
+                      id="view-fullscreen-resume-btn"
+                    >
+                      <span>🔍</span> Zoom
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.removeResumeBtn}
+                      onClick={handleRemoveResume}
+                      title="Remove Uploaded File"
+                      id="remove-resume-btn"
+                    >
+                      <span>🗑️</span> Remove
+                    </button>
+                  </div>
+                </div>
+
+                {/* Document Viewer Frame */}
+                <div className={styles.documentPreviewBox}>
+                  {resumeFileType === "application/pdf" || resumeFilePreview.startsWith("data:application/pdf") ? (
+                    <iframe
+                      src={resumeFilePreview}
+                      className={styles.resumePdfFrame}
+                      title="Resume PDF Viewer"
+                    />
+                  ) : (
+                    <div className={styles.imagePreviewWrapper}>
+                      <img
+                        src={resumeFilePreview}
+                        alt="Uploaded Resume"
+                        className={styles.resumeImagePreview}
+                        onClick={() => setIsModalPreviewOpen(true)}
+                        title="Click to zoom / view fullscreen"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles.cachedNotice}>
+                  <span>💾</span> Resume cached in your session. All extracted form fields are prefilled below and can be edited anytime.
+                </div>
+              </div>
+            ) : (
+              <div className={styles.fileUploadArea} onClick={triggerFileSelect}>
+                <span className={styles.fileUploadIcon}>📁</span>
+                <span>{isScanning ? "Scanning Document with Gemini AI..." : "Click or Drag to Upload Resume File"}</span>
+              </div>
+            )}
 
             {isScanning && (
               <div className={styles.scanStatus}>
@@ -649,10 +1111,74 @@ function SkillAnalyzerContent(): React.JSX.Element {
 
           {/* 2. Structured Form fields */}
           <div className={styles.formCard}>
+            {/* Form Top Toolbar */}
+            <div className={styles.formToolbar}>
+              <div className={styles.formToolbarHeader}>
+                <h3 className={styles.formToolbarTitle}>📋 Candidate Resume Profile</h3>
+                {isDirty ? (
+                  <span className={`${styles.dirtyBadge} ${styles.dirtyBadgeUnsaved}`} title="You have unsaved changes">
+                    ⚠️ Unsaved Changes
+                  </span>
+                ) : (
+                  <span className={`${styles.dirtyBadge} ${styles.dirtyBadgeSaved}`} title="All changes saved">
+                    ✓ Saved
+                  </span>
+                )}
+              </div>
+
+              <div className={styles.formToolbarActions}>
+                <button
+                  type="button"
+                  className={styles.saveResumeBtn}
+                  onClick={handleSaveResume}
+                  disabled={isSavingResume}
+                  id="save-resume-profile-btn"
+                  title="Save resume to database & profile"
+                >
+                  {isSavingResume ? (
+                    <>
+                      <span className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>💾</span>
+                      <span>Save Resume</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  className={styles.clearAllBtn}
+                  onClick={promptClearAll}
+                  id="clear-all-resume-btn"
+                  title="Reset all form sections"
+                >
+                  <span>🧹</span>
+                  <span>Clear All</span>
+                </button>
+              </div>
+            </div>
+
+            {saveStatusMessage && (
+              <div className={styles.scanSuccess} style={{ margin: "0 0 var(--space-4) 0" }}>
+                {saveStatusMessage}
+              </div>
+            )}
+
             {/* Personal Details */}
             <div className={styles.formSection}>
               <div className={styles.sectionHeaderRow}>
                 <h3 className={styles.sectionTitle}>👤 Personal Details</h3>
+                <button
+                  type="button"
+                  className={styles.clearSectionBtn}
+                  onClick={handleClearPersonal}
+                  title="Clear Personal Details"
+                >
+                  🧹 Clear Section
+                </button>
               </div>
               <div className={styles.formGrid}>
                 <div className={styles.formGroup}>
@@ -684,13 +1210,23 @@ function SkillAnalyzerContent(): React.JSX.Element {
             <div className={styles.formSection}>
               <div className={styles.sectionHeaderRow}>
                 <h3 className={styles.sectionTitle}>🏫 Education</h3>
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-sm"
-                  onClick={addEducation}
-                >
-                  ➕ Add Education
-                </button>
+                <div className={styles.sectionActions}>
+                  <button
+                    type="button"
+                    className={styles.clearSectionBtn}
+                    onClick={handleClearEducation}
+                    title="Clear Education Section"
+                  >
+                    🧹 Clear Section
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={addEducation}
+                  >
+                    ➕ Add Education
+                  </button>
+                </div>
               </div>
 
               {educationList.length === 0 ? (
@@ -769,13 +1305,23 @@ function SkillAnalyzerContent(): React.JSX.Element {
             <div className={styles.formSection}>
               <div className={styles.sectionHeaderRow}>
                 <h3 className={styles.sectionTitle}>💼 Work Experience</h3>
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-sm"
-                  onClick={addExperience}
-                >
-                  ➕ Add Experience
-                </button>
+                <div className={styles.sectionActions}>
+                  <button
+                    type="button"
+                    className={styles.clearSectionBtn}
+                    onClick={handleClearExperience}
+                    title="Clear Experience Section"
+                  >
+                    🧹 Clear Section
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={addExperience}
+                  >
+                    ➕ Add Experience
+                  </button>
+                </div>
               </div>
 
               {experienceList.length === 0 ? (
@@ -856,13 +1402,23 @@ function SkillAnalyzerContent(): React.JSX.Element {
             <div className={styles.formSection}>
               <div className={styles.sectionHeaderRow}>
                 <h3 className={styles.sectionTitle}>🛠️ Project Involvement</h3>
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-sm"
-                  onClick={addProject}
-                >
-                  ➕ Add Project
-                </button>
+                <div className={styles.sectionActions}>
+                  <button
+                    type="button"
+                    className={styles.clearSectionBtn}
+                    onClick={handleClearProjects}
+                    title="Clear Projects Section"
+                  >
+                    🧹 Clear Section
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={addProject}
+                  >
+                    ➕ Add Project
+                  </button>
+                </div>
               </div>
 
               {projectsList.length === 0 ? (
@@ -913,6 +1469,14 @@ function SkillAnalyzerContent(): React.JSX.Element {
             <div className={styles.formSection}>
               <div className={styles.sectionHeaderRow}>
                 <h3 className={styles.sectionTitle}>🏷️ Skills & Competencies</h3>
+                <button
+                  type="button"
+                  className={styles.clearSectionBtn}
+                  onClick={handleClearSkills}
+                  title="Clear Skills Section"
+                >
+                  🧹 Clear Section
+                </button>
               </div>
               <div className={styles.tagInputWrapper}>
                 <input
@@ -956,13 +1520,23 @@ function SkillAnalyzerContent(): React.JSX.Element {
             <div className={styles.formSection}>
               <div className={styles.sectionHeaderRow}>
                 <h3 className={styles.sectionTitle}>🏆 Achievements & Certificates</h3>
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-sm"
-                  onClick={addAchievement}
-                >
-                  ➕ Add Achievement
-                </button>
+                <div className={styles.sectionActions}>
+                  <button
+                    type="button"
+                    className={styles.clearSectionBtn}
+                    onClick={handleClearAchievements}
+                    title="Clear Achievements Section"
+                  >
+                    🧹 Clear Section
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={addAchievement}
+                  >
+                    ➕ Add Achievement
+                  </button>
+                </div>
               </div>
 
               {achievementsList.length === 0 ? (
@@ -1138,6 +1712,103 @@ function SkillAnalyzerContent(): React.JSX.Element {
           </div>
         </section>
       )}
+
+      {/* Fullscreen Resume Preview Modal */}
+      {isModalPreviewOpen && resumeFilePreview && (
+        <div
+          className={styles.previewModalOverlay}
+          onClick={() => setIsModalPreviewOpen(false)}
+        >
+          <div
+            className={styles.previewModalContent}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.previewModalHeader}>
+              <div className={styles.previewModalTitle}>
+                <span>
+                  {resumeFileType === "application/pdf" ||
+                  resumeFilePreview.startsWith("data:application/pdf")
+                    ? "📄"
+                    : "🖼️"}
+                </span>
+                <span>{resumeFileName || "Resume Document"}</span>
+              </div>
+              <button
+                type="button"
+                className={styles.previewModalCloseBtn}
+                onClick={() => setIsModalPreviewOpen(false)}
+                aria-label="Close Preview"
+              >
+                ✕
+              </button>
+            </div>
+            <div className={styles.previewModalBody}>
+              {resumeFileType === "application/pdf" ||
+              resumeFilePreview.startsWith("data:application/pdf") ? (
+                <iframe
+                  src={resumeFilePreview}
+                  className={styles.previewModalPdf}
+                  title="Fullscreen PDF Viewer"
+                />
+              ) : (
+                <img
+                  src={resumeFilePreview}
+                  alt="Fullscreen Resume"
+                  className={styles.previewModalImage}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* General Action Confirmation Prompt Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        itemName={confirmModal.itemName}
+        itemIcon={confirmModal.itemIcon}
+        confirmLabel={confirmModal.confirmLabel}
+        cancelLabel={confirmModal.cancelLabel}
+        variant={confirmModal.variant}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+      />
+
+      {/* Navigation Leave Page Confirmation Prompt Modal */}
+      <ConfirmModal
+        isOpen={isLeaveModalOpen}
+        title="Unsaved Resume Changes"
+        message="You have unsaved changes in your resume profile. Would you like to save your changes before leaving this page?"
+        itemName="Candidate Resume Profile"
+        itemIcon="📝"
+        confirmLabel="💾 Save & Leave"
+        secondaryConfirmLabel="Leave Without Saving"
+        cancelLabel="Stay on Page"
+        variant="save"
+        isLoading={isSavingResume}
+        onConfirm={async () => {
+          const success = await handleSaveResume();
+          if (success) {
+            setIsLeaveModalOpen(false);
+            if (pendingNavigationUrl) {
+              router.push(pendingNavigationUrl);
+            }
+          }
+        }}
+        onSecondaryConfirm={() => {
+          markAsSaved();
+          setIsLeaveModalOpen(false);
+          if (pendingNavigationUrl) {
+            router.push(pendingNavigationUrl);
+          }
+        }}
+        onCancel={() => {
+          setIsLeaveModalOpen(false);
+          setPendingNavigationUrl(null);
+        }}
+      />
 
       <Footer />
     </>

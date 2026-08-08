@@ -64,6 +64,15 @@
   --modal-btn-shadow: 0 0 20px rgba(13, 139, 217, 0.35);
 }
 
+.modal.save {
+  --modal-accent-gradient: linear-gradient(90deg, var(--primary-500), #10b981);
+  --modal-icon-bg: rgba(16, 185, 129, 0.12);
+  --modal-icon-border: rgba(16, 185, 129, 0.3);
+  --modal-btn-bg: linear-gradient(135deg, #059669, #10b981);
+  --modal-btn-hover: linear-gradient(135deg, #047857, #059669);
+  --modal-btn-shadow: 0 0 20px rgba(16, 185, 129, 0.35);
+}
+
 /* ===== Header ===== */
 .header {
   display: flex;
@@ -152,6 +161,29 @@
 }
 
 .cancelBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondaryBtn {
+  padding: var(--space-2) var(--space-4);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-lg);
+  color: #fca5a5;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.secondaryBtn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.secondaryBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }

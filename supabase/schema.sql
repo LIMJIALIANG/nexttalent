@@ -49,3 +49,36 @@ CREATE POLICY "Allow individual select from skill_analyses" ON skill_analyses
 
 CREATE POLICY "Allow individual delete from skill_analyses" ON skill_analyses
   FOR DELETE USING (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);
+
+-- Table 3: User Resumes
+-- Stores editable resume profile data from Module 2 (Skill-Gap Analyzer)
+CREATE TABLE IF NOT EXISTS user_resumes (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
+  personal_name TEXT DEFAULT '',
+  objective TEXT DEFAULT '',
+  education JSONB DEFAULT '[]'::jsonb,
+  experience JSONB DEFAULT '[]'::jsonb,
+  projects JSONB DEFAULT '[]'::jsonb,
+  skills JSONB DEFAULT '[]'::jsonb,
+  achievements JSONB DEFAULT '[]'::jsonb,
+  resume_file_name TEXT,
+  resume_file_type TEXT,
+  resume_file_size INTEGER,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE user_resumes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow individual insert to user_resumes" ON user_resumes
+  FOR INSERT WITH CHECK (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);
+
+CREATE POLICY "Allow individual select from user_resumes" ON user_resumes
+  FOR SELECT USING (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);
+
+CREATE POLICY "Allow individual update to user_resumes" ON user_resumes
+  FOR UPDATE USING (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);
+
+CREATE POLICY "Allow individual delete from user_resumes" ON user_resumes
+  FOR DELETE USING (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);
