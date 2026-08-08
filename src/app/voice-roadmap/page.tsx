@@ -58,6 +58,7 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
   const [isLoadingHistory, setIsLoadingHistory] = useState<boolean>(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [activeUserId, setActiveUserId] = useState<string | null>(null);
+  const [activeRoadmapId, setActiveRoadmapId] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState<string>("");
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -325,6 +326,8 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
         created_at: new Date().toISOString(),
       };
 
+      setActiveRoadmapId(newRecord.id);
+
       const updatedHistory = [
         newRecord,
         ...savedRoadmaps.filter((r) => r.id !== newRecord.id),
@@ -352,6 +355,7 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
 
   const handleReviewRoadmap = (record: SavedRoadmapRecord): void => {
     setTranscript(record.transcript);
+    setActiveRoadmapId(record.id);
     if (record.roadmap_data) {
       setRoadmap(record.roadmap_data);
     } else {
@@ -408,6 +412,17 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
         // quota
       }
 
+      // If the currently displayed roadmap was the one just deleted, clear the display & transcript
+      if (activeRoadmapId === recordId || roadmap?.careerTitle === careerTitle) {
+        setRoadmap(null);
+        setActiveRoadmapId(null);
+        const deletedItem = savedRoadmaps.find((r) => r.id === recordId);
+        if (deletedItem && transcript === deletedItem.transcript) {
+          setTranscript("");
+          transcriptRef.current = "";
+        }
+      }
+
       setToastMsg(`🗑️ Deleted roadmap for "${careerTitle}".`);
       setTimeout(() => setToastMsg(""), 3500);
     } catch (err) {
@@ -438,6 +453,7 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
     setTranscript("");
     transcriptRef.current = "";
     setRoadmap(null);
+    setActiveRoadmapId(null);
     setError("");
     setToastMsg("");
     setIsProcessing(false);
