@@ -5,6 +5,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { RoadmapData } from "@/types";
+import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import styles from "./page.module.css";
 
 // Extend Window interface for webkit speech recognition
@@ -122,10 +123,17 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
     setRoadmap(null);
 
     try {
+      const supabase = getSupabaseBrowserClient();
+      let userId: string | undefined;
+      if (supabase) {
+        const { data: { session } } = await supabase.auth.getSession();
+        userId = session?.user?.id;
+      }
+
       const response = await fetch("/api/generate-roadmap", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transcript: transcript.trim() }),
+        body: JSON.stringify({ transcript: transcript.trim(), userId }),
       });
 
       const data = await response.json();

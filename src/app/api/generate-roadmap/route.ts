@@ -5,7 +5,7 @@ import { RoadmapData } from "@/types";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const { transcript } = (await request.json()) as { transcript: string };
+    const { transcript, userId } = (await request.json()) as { transcript: string; userId?: string };
 
     if (!transcript || transcript.trim().length === 0) {
       return NextResponse.json(
@@ -53,6 +53,7 @@ Generate between 5 and 8 roadmap steps. Be specific to the Malaysian job market 
     if (supabase) {
       try {
         await supabase.from("roadmap_sessions").insert({
+          user_id: userId || null,
           transcript: transcript,
           career_title: roadmapData.careerTitle,
           required_skills: roadmapData.requiredSkills,

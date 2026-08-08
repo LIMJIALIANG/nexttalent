@@ -6,11 +6,12 @@ import { RoadmapData, SkillAnalysis } from "@/types";
 interface AnalyzeSkillsBody {
   resumeText: string;
   roadmapData: RoadmapData;
+  userId?: string;
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const { resumeText, roadmapData } = (await request.json()) as AnalyzeSkillsBody;
+    const { resumeText, roadmapData, userId } = (await request.json()) as AnalyzeSkillsBody;
 
     if (!resumeText || !roadmapData) {
       return NextResponse.json(
@@ -67,6 +68,7 @@ Be encouraging but honest. Focus on actionable advice for the Malaysian context.
     if (supabase) {
       try {
         await supabase.from("skill_analyses").insert({
+          user_id: userId || null,
           career_title: roadmapData.careerTitle,
           match_percentage: analysisData.overallMatchPercentage,
           matched_skills_count: analysisData.matchedSkills.length,

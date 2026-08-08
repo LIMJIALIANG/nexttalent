@@ -15,6 +15,7 @@ import {
   ResumeProject,
   ParsedResumeData,
 } from "@/types";
+import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import styles from "./page.module.css";
 
 function SkillAnalyzerContent(): React.JSX.Element {
@@ -253,10 +254,21 @@ function SkillAnalyzerContent(): React.JSX.Element {
     setAnalysis(null);
 
     try {
+      const supabase = getSupabaseBrowserClient();
+      let userId: string | undefined;
+      if (supabase) {
+        const { data: { session } } = await supabase.auth.getSession();
+        userId = session?.user?.id;
+      }
+
       const response = await fetch("/api/analyze-skills", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeText: resumeText.trim(), roadmapData: roadmap }),
+        body: JSON.stringify({
+          resumeText: resumeText.trim(),
+          roadmapData: roadmap,
+          userId,
+        }),
       });
 
       const data = await response.json();
