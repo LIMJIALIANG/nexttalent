@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ConfirmModal from "@/components/ConfirmModal";
 import { RoadmapData } from "@/types";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import styles from "./page.module.css";
@@ -57,6 +58,7 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
   const [savedRoadmaps, setSavedRoadmaps] = useState<SavedRoadmapRecord[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState<boolean>(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [pendingDeleteRecord, setPendingDeleteRecord] = useState<SavedRoadmapRecord | null>(null);
   const [activeUserId, setActiveUserId] = useState<string | null>(null);
   const [activeRoadmapId, setActiveRoadmapId] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState<string>("");
@@ -378,17 +380,11 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
     }, 100);
   };
 
-  const handleDeleteRoadmap = async (
-    recordId: string,
-    careerTitle: string
-  ): Promise<void> => {
-    if (
-      !confirm(
-        `Are you sure you want to delete the saved roadmap for "${careerTitle}"?`
-      )
-    ) {
-      return;
-    }
+  const handleConfirmDelete = async (): Promise<void> => {
+    if (!pendingDeleteRecord) return;
+
+    const recordId = pendingDeleteRecord.id;
+    const careerTitle = pendingDeleteRecord.career_title;
 
     setDeletingId(recordId);
     try {
@@ -416,8 +412,7 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
       if (activeRoadmapId === recordId || roadmap?.careerTitle === careerTitle) {
         setRoadmap(null);
         setActiveRoadmapId(null);
-        const deletedItem = savedRoadmaps.find((r) => r.id === recordId);
-        if (deletedItem && transcript === deletedItem.transcript) {
+        if (transcript === pendingDeleteRecord.transcript) {
           setTranscript("");
           transcriptRef.current = "";
         }
@@ -425,6 +420,7 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
 
       setToastMsg(`🗑️ Deleted roadmap for "${careerTitle}".`);
       setTimeout(() => setToastMsg(""), 3500);
+      setPendingDeleteRecord(null);
     } catch (err) {
       setError(`Failed to delete roadmap: ${(err as Error).message}`);
     } finally {
@@ -703,23 +699,11 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
                         <button
                           type="button"
                           className={styles.deleteBtn}
-                          onClick={() =>
-                            handleDeleteRoadmap(rec.id, rec.career_title)
-                          }
+                          onClick={() => setPendingDeleteRecord(rec)}
                           disabled={deletingId === rec.id}
                           id={`delete-btn-${rec.id}`}
                         >
-                          {deletingId === rec.id ? (
-                            <>
-                              <span
-                                className="spinner"
-                                style={{ width: 12, height: 12 }}
-                              />{" "}
-                              Deleting...
-                            </>
-                          ) : (
-                            "🗑️ Delete"
-                          )}
+                          🗑️ Delete
                         </button>
                       </div>
                     </div>
@@ -817,6 +801,31 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
           </div>
         </section>
       )}
+
+      {/* Reusable Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={Boolean(pendingDeleteRecord)}
+        title="Delete Roadmap Record"
+        message="Are you sure you want to permanently delete this saved career roadmap? This action cannot be undone."
+        itemName={
+          pendingDeleteRecord
+            ? `${pendingDeleteRecord.career_title}${
+                pendingDeleteRecord.steps_count
+                  ? ` (${pendingDeleteRecord.steps_count} Steps)`
+                  : ""
+              }`
+            : undefined
+        }
+        itemIcon="🎯"
+        confirmLabel="Delete Record"
+        cancelLabel="Keep Record"
+        variant="danger"
+        isLoading={Boolean(deletingId)}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => {
+          if (!deletingId) setPendingDeleteRecord(null);
+        }}
+      />
 
       <Footer />
     </>
