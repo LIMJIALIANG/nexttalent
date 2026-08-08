@@ -18,12 +18,28 @@ import {
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import styles from "./page.module.css";
 
+interface SavedRoadmapRecord {
+  id: string;
+  transcript: string;
+  career_title: string;
+  required_skills?: string[];
+  steps_count?: number;
+  roadmap_data?: RoadmapData;
+  created_at: string;
+}
+
 function SkillAnalyzerContent(): React.JSX.Element {
   const searchParams = useSearchParams();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   // Roadmap details
   const [roadmap, setRoadmap] = useState<RoadmapData | null>(null);
+  const [savedRoadmaps, setSavedRoadmaps] = useState<SavedRoadmapRecord[]>([]);
+  const [selectedRoadmapId, setSelectedRoadmapId] = useState<string>("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+  const [isLoadingRoadmaps, setIsLoadingRoadmaps] = useState<boolean>(true);
+  const [activeUserId, setActiveUserId] = useState<string | null>(null);
 
   // Resume form states
   const [personalName, setPersonalName] = useState<string>("");
@@ -42,16 +58,156 @@ function SkillAnalyzerContent(): React.JSX.Element {
   const [analysis, setAnalysis] = useState<SkillAnalysis | null>(null);
   const [error, setError] = useState<string>("");
 
-  useEffect(() => {
+  const getStorageKey = (uid: string | null): string => {
+    return uid ? `nextgen_saved_roadmaps_${uid}` : "nextgen_saved_roadmaps_guest";
+  };
+
+  const fetchUserHistory = async (userId: string | null): Promise<void> => {
+    setIsLoadingRoadmaps(true);
+    let loadedRecords: SavedRoadmapRecord[] = [];
+
+    // 1. Check local storage partitioned by user
+    try {
+      const cached = localStorage.getItem(getStorageKey(userId));
+      if (cached) {
+        loadedRecords = JSON.parse(cached) as SavedRoadmapRecord[];
+        setSavedRoadmaps(loadedRecords);
+      }
+    } catch {
+      // ignore
+    }
+
+    // 2. Fetch server database records for authenticated user
+    if (userId) {
+      try {
+        const res = await fetch(`/api/user-roadmaps?userId=${userId}`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data && Array.isArray(json.data) && json.data.length > 0) {
+            loadedRecords = json.data as SavedRoadmapRecord[];
+            setSavedRoadmaps(loadedRecords);
+            try {
+              localStorage.setItem(
+                getStorageKey(userId),
+                JSON.stringify(loadedRecords)
+              );
+            } catch {
+              // ignore
+            }
+          }
+        }
+      } catch {
+        // network error
+      }
+    }
+
+    setIsLoadingRoadmaps(false);
+
+    // If searchParam passed a roadmap
     const roadmapParam = searchParams.get("roadmap");
     if (roadmapParam) {
       try {
-        setRoadmap(JSON.parse(roadmapParam) as RoadmapData);
+        const parsed = JSON.parse(roadmapParam) as RoadmapData;
+        setRoadmap(parsed);
+        const matched = loadedRecords.find(
+          (r) =>
+            r.career_title.toLowerCase() === parsed.careerTitle.toLowerCase()
+        );
+        setSelectedRoadmapId(matched ? matched.id : "custom");
+        return;
       } catch {
-        console.warn("Invalid roadmap data in URL");
+        // ignore
       }
     }
+
+    // Otherwise if we have saved roadmaps and no roadmap is chosen, default to the first one
+    if (loadedRecords.length > 0) {
+      const first = loadedRecords[0];
+      setSelectedRoadmapId(first.id);
+      if (first.roadmap_data) {
+        setRoadmap(first.roadmap_data);
+      } else {
+        setRoadmap({
+          careerTitle: first.career_title,
+          summary: `Target career roadmap for ${first.career_title}`,
+          roadmapSteps: [],
+          requiredSkills: first.required_skills || [],
+          industryOutlook: "Refer to steps for industry outlook in Malaysia.",
+        });
+      }
+    }
+  };
+
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    if (supabase) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        const uid = session?.user?.id || null;
+        setActiveUserId(uid);
+        fetchUserHistory(uid);
+      });
+
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((_event, session) => {
+        const uid = session?.user?.id || null;
+        setActiveUserId(uid);
+        fetchUserHistory(uid);
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    } else {
+      fetchUserHistory(null);
+    }
   }, [searchParams]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleEscape);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isDropdownOpen]);
+
+  const handleSelectRoadmap = (recordId: string): void => {
+    setSelectedRoadmapId(recordId);
+    setIsDropdownOpen(false);
+    const found = savedRoadmaps.find((r) => r.id === recordId);
+    if (found) {
+      if (found.roadmap_data) {
+        setRoadmap(found.roadmap_data);
+      } else {
+        setRoadmap({
+          careerTitle: found.career_title,
+          summary: `Target career roadmap for ${found.career_title}`,
+          roadmapSteps: [],
+          requiredSkills: found.required_skills || [],
+          industryOutlook: "Refer to steps for industry outlook in Malaysia.",
+        });
+      }
+      setError("");
+    }
+  };
 
   // File Upload and Gemini OCR Parser
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
@@ -244,7 +400,7 @@ function SkillAnalyzerContent(): React.JSX.Element {
 
     if (!roadmap) {
       setError(
-        "No roadmap data found. Please generate a roadmap first in Module 1."
+        "No target roadmap selected. Please generate or select a roadmap from the Voice-to-Roadmap section."
       );
       return;
     }
@@ -311,7 +467,7 @@ function SkillAnalyzerContent(): React.JSX.Element {
       <section className={styles.hero}>
         <div className={styles.heroGlow} />
         <div className={styles.heroContent}>
-          <span className="badge badge-primary">Module 2</span>
+          <span className="badge badge-primary">Skill-Gap Analysis</span>
           <h1 className={styles.heroTitle}>
             Automated <span className="text-gradient">Skill-Gap</span> Analyzer
           </h1>
@@ -325,38 +481,133 @@ function SkillAnalyzerContent(): React.JSX.Element {
       {/* Analyzer Section */}
       <section className={styles.analyzerSection}>
         <div className="container">
-          {/* Target Roadmap Context */}
+          {/* Target Roadmap Context & Selector */}
           {roadmap ? (
             <div className={styles.contextCard}>
-              <div className={styles.contextIcon}>🎯</div>
-              <div>
-                <h3 className={styles.contextTitle}>
-                  Target Career: {roadmap.careerTitle}
-                </h3>
-                <p className={styles.contextDesc}>{roadmap.summary}</p>
+              <div className={styles.contextTopRow}>
+                <div className={styles.contextMain}>
+                  <div className={styles.contextIcon}>🎯</div>
+                  <div>
+                    <h3 className={styles.contextTitle}>
+                      Target Career: {roadmap.careerTitle}
+                    </h3>
+                    <p className={styles.contextDesc}>{roadmap.summary}</p>
+                  </div>
+                </div>
+
+                <div className={styles.selectorContainer}>
+                  <div className={styles.dropdownWrapper} ref={dropdownRef}>
+                    <button
+                      type="button"
+                      className={`${styles.dropdownTrigger} ${
+                        isDropdownOpen ? styles.dropdownTriggerActive : ""
+                      }`}
+                      onClick={() => setIsDropdownOpen((prev) => !prev)}
+                      aria-expanded={isDropdownOpen}
+                      id="switch-roadmap-dropdown-btn"
+                    >
+                      <div className={styles.dropdownTriggerText}>
+                        <span>🎯</span>
+                        <span className={styles.dropdownTriggerTitle}>
+                          {roadmap.careerTitle}
+                        </span>
+                      </div>
+                      <span
+                        className={`${styles.dropdownChevron} ${
+                          isDropdownOpen ? styles.dropdownChevronOpen : ""
+                        }`}
+                      >
+                        ▼
+                      </span>
+                    </button>
+
+                      {isDropdownOpen && (
+                        <div className={styles.dropdownMenu}>
+                          <div className={styles.dropdownHeader}>
+                            <span>Your Saved Roadmaps ({savedRoadmaps.length})</span>
+                          </div>
+                          <div className={styles.dropdownList}>
+                            {savedRoadmaps.map((rec) => {
+                              const isSelected =
+                                selectedRoadmapId === rec.id ||
+                                (!selectedRoadmapId &&
+                                  rec.career_title.toLowerCase() ===
+                                    roadmap.careerTitle.toLowerCase());
+                              return (
+                                <button
+                                  key={rec.id}
+                                  type="button"
+                                  className={`${styles.dropdownItem} ${
+                                    isSelected ? styles.dropdownItemActive : ""
+                                  }`}
+                                  onClick={() => handleSelectRoadmap(rec.id)}
+                                >
+                                  <span className={styles.dropdownItemIcon}>
+                                    🎯
+                                  </span>
+                                  <div className={styles.dropdownItemContent}>
+                                    <div className={styles.dropdownItemTitleRow}>
+                                      <span className={styles.dropdownItemTitle}>
+                                        {rec.career_title}
+                                      </span>
+                                    </div>
+                                    {rec.required_skills &&
+                                      rec.required_skills.length > 0 && (
+                                        <div className={styles.dropdownItemSkills}>
+                                          {rec.required_skills.slice(0, 3).join(", ")}
+                                          {rec.required_skills.length > 3
+                                            ? ` +${rec.required_skills.length - 3} more`
+                                            : ""}
+                                        </div>
+                                      )}
+                                  </div>
+                                  {isSelected && (
+                                    <span className={styles.dropdownCheck}>
+                                      ✓
+                                    </span>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <div className={styles.dropdownFooter}>
+                            <Link
+                              href="/voice-roadmap"
+                              className={styles.dropdownCreateBtn}
+                              onClick={() => setIsDropdownOpen(false)}
+                            >
+                              <span>➕</span> Generate New Roadmap with Voice AI →
+                            </Link>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                </div>
               </div>
+
+              {roadmap.requiredSkills && roadmap.requiredSkills.length > 0 && (
+                <div className={styles.roadmapSkillsList}>
+                  <span className={styles.roadmapSkillsLabel}>Benchmark Skills:</span>
+                  {roadmap.requiredSkills.map((skill, idx) => (
+                    <span key={idx} className={styles.roadmapSkillPill}>
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
-            <div className={styles.noRoadmap}>
-              <p>
-                ⚠️ No roadmap loaded. Please{" "}
-                <Link href="/voice-roadmap">generate a roadmap first</Link> or
-                enter your roadmap data in JSON format:
-              </p>
-              <textarea
-                className="textarea"
-                placeholder='Paste roadmap JSON. Example: {"careerTitle": "Data Scientist", "requiredSkills": ["Python", "SQL"]}'
-                rows={3}
-                onChange={(e) => {
-                  try {
-                    setRoadmap(JSON.parse(e.target.value) as RoadmapData);
-                    setError("");
-                  } catch {
-                    // typing
-                  }
-                }}
-                id="roadmap-json-input"
-              />
+            <div className={styles.emptyRoadmapCard}>
+              <div className={styles.emptyRoadmapIcon}>🎯</div>
+              <div className={styles.emptyRoadmapContent}>
+                <h3 className={styles.emptyRoadmapTitle}>Target Career Roadmap Required</h3>
+                <p className={styles.emptyRoadmapDesc}>
+                  To analyze your resume's skill gaps and generate personalized recommendations, you need a career roadmap first. Head over to the Voice-to-Roadmap section to speak or type your career goals and generate your roadmap.
+                </p>
+                <Link href="/voice-roadmap" className={styles.emptyRoadmapCta} id="generate-roadmap-cta">
+                  🎤 Generate Roadmap in Voice Assistant →
+                </Link>
+              </div>
             </div>
           )}
 
@@ -865,7 +1116,7 @@ function SkillAnalyzerContent(): React.JSX.Element {
             {/* Next Step */}
             <div className={styles.nextStep}>
               <div className={styles.nextStepCard}>
-                <h3>📚 Ready for Step 3?</h3>
+                <h3>📚 Ready for Next Step?</h3>
                 <p>
                   Get curated course recommendations to close every skill gap
                   identified above.
