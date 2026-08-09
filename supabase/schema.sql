@@ -90,3 +90,38 @@ CREATE POLICY "Allow individual update to user_resumes" ON user_resumes
 
 CREATE POLICY "Allow individual delete from user_resumes" ON user_resumes
   FOR DELETE USING (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);
+
+-- Table 4: User Seen / Clicked Courses
+-- Stores learning history for Module 3 (Micro-Learning Recommender)
+CREATE TABLE IF NOT EXISTS user_seen_courses (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  course_id INTEGER,
+  course_title TEXT NOT NULL,
+  provider TEXT,
+  url TEXT NOT NULL,
+  level TEXT,
+  duration TEXT,
+  keywords TEXT[] DEFAULT '{}',
+  skill_category TEXT,
+  viewed_at TIMESTAMPTZ DEFAULT NOW(),
+  click_count INTEGER DEFAULT 1,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, course_title)
+);
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE user_seen_courses ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow individual insert to user_seen_courses" ON user_seen_courses
+  FOR INSERT WITH CHECK (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);
+
+CREATE POLICY "Allow individual select from user_seen_courses" ON user_seen_courses
+  FOR SELECT USING (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);
+
+CREATE POLICY "Allow individual update to user_seen_courses" ON user_seen_courses
+  FOR UPDATE USING (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);
+
+CREATE POLICY "Allow individual delete from user_seen_courses" ON user_seen_courses
+  FOR DELETE USING (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);
+

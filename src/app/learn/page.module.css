@@ -44,9 +44,366 @@
   line-height: 1.7;
 }
 
+/* ===== History Section (Previously Seen Courses) ===== */
+.historySection {
+  padding: var(--space-8) 0 var(--space-4);
+}
+
+.historyCard {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-8);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.historyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.historyTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.historyIcon {
+  font-size: 2rem;
+  width: 52px;
+  height: 52px;
+  background: rgba(240, 180, 41, 0.1);
+  border: 1px solid rgba(240, 180, 41, 0.25);
+  border-radius: var(--radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.historyTitle {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 2px;
+}
+
+.historySubtitle {
+  color: var(--gray-400);
+  font-size: 0.875rem;
+}
+
+/* Timeframe Filter Group */
+.timeframeFilterGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.filterLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.timeframePills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 4px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  flex-wrap: wrap;
+}
+
+.timeframePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  color: var(--gray-400);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.timeframePill:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.activeTimeframePill {
+  background: var(--gradient-primary) !important;
+  color: #0d1117 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 14px rgba(0, 212, 160, 0.25);
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.defaultBadge {
+  font-size: 0.65rem;
+  background: rgba(0, 0, 0, 0.25);
+  color: inherit;
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* History Toolbar */
+.historyToolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.historyStats {
+  display: flex;
+  align-items: center;
+}
+
+.statPill {
+  font-size: 0.8125rem;
+  color: var(--gray-300);
+}
+
+.statPill strong {
+  color: var(--accent-400);
+}
+
+.historyControls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.historySearchWrapper {
+  min-width: 220px;
+}
+
+.historySearchInput {
+  padding: 6px 12px !important;
+  font-size: 0.8125rem !important;
+  border-radius: var(--radius-md) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+.clearHistoryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: var(--radius-md);
+  color: #fca5a5;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.clearHistoryBtn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  color: white;
+}
+
+/* History Grid */
+.historyGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+
+.historyCourseCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--surface-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  text-decoration: none;
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.historyCourseCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-gold);
+  opacity: 0.7;
+  transition: opacity var(--transition-base);
+}
+
+.historyCourseCard:hover {
+  border-color: rgba(240, 180, 41, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.historyCourseCard:hover::before {
+  opacity: 1;
+}
+
+.historyCardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.historyTimestamp {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.clockIcon {
+  font-size: 0.8125rem;
+}
+
+.historyCardActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.visitedBadge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  background: rgba(13, 139, 217, 0.15);
+  color: #38bdf8;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(13, 139, 217, 0.3);
+}
+
+.removeHistoryItemBtn {
+  background: transparent;
+  border: none;
+  color: var(--gray-500);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.removeHistoryItemBtn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.categoryBadgeWrapper {
+  margin-top: -2px;
+}
+
+.historyCardFooter {
+  margin-top: auto;
+  padding-top: var(--space-2);
+}
+
+.revisitLink {
+  color: #fbbf24;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: transform var(--transition-fast);
+}
+
+.historyCourseCard:hover .revisitLink {
+  transform: translateX(4px);
+  color: white;
+}
+
+/* History Loading & Empty States */
+.historyLoading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-12);
+  color: var(--gray-400);
+  font-size: 0.875rem;
+}
+
+.historyEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-10) var(--space-6);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed var(--glass-border);
+  border-radius: var(--radius-xl);
+  margin-top: var(--space-4);
+}
+
+.emptyIcon {
+  font-size: 2.25rem;
+  margin-bottom: var(--space-3);
+  opacity: 0.8;
+}
+
+.historyEmpty p {
+  color: var(--gray-300);
+  font-size: 0.9375rem;
+  margin-bottom: var(--space-2);
+}
+
+.emptyHint {
+  color: var(--gray-500);
+  font-size: 0.8125rem;
+  max-width: 500px;
+  line-height: 1.5;
+}
+
+.emptyActions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
 /* ===== Search Section ===== */
 .searchSection {
-  padding: var(--space-12) 0;
+  padding: var(--space-8) 0;
 }
 
 .searchCard {
@@ -296,6 +653,38 @@
 }
 
 @media (max-width: 768px) {
+  .historyHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .timeframeFilterGroup {
+    width: 100%;
+  }
+
+  .timeframePills {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .historyToolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .historyControls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .historySearchWrapper {
+    width: 100%;
+  }
+
+  .historyGrid {
+    grid-template-columns: 1fr;
+  }
+
   .searchInput {
     flex-direction: column;
   }

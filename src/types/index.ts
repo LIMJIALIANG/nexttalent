@@ -58,6 +58,23 @@ export interface CourseRecommendations {
   skillsWithoutCourses: string[];
 }
 
+export type HistoryTimeframe = 7 | 15 | 30 | "all";
+
+export interface SeenCourseRecord {
+  id: string;
+  user_id?: string | null;
+  course_id: number;
+  course_title: string;
+  provider: string;
+  url: string;
+  level: "Beginner" | "Intermediate" | "Advanced" | string;
+  duration: string;
+  keywords: string[];
+  skill_category?: string;
+  viewed_at: string;
+  click_count?: number;
+}
+
 // ===== Module 4: Analytics Dashboard =====
 
 export interface CareerCount {
