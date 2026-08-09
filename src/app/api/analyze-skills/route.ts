@@ -7,11 +7,14 @@ interface AnalyzeSkillsBody {
   resumeText: string;
   roadmapData: RoadmapData;
   userId?: string;
+  resumeSnapshot?: string;
+  roadmapId?: string;
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const { resumeText, roadmapData, userId } = (await request.json()) as AnalyzeSkillsBody;
+    const { resumeText, roadmapData, userId, resumeSnapshot, roadmapId } =
+      (await request.json()) as AnalyzeSkillsBody;
 
     if (!resumeText || !roadmapData) {
       return NextResponse.json(
@@ -64,23 +67,55 @@ Be encouraging but honest. Focus on actionable advice for the Malaysian context.
 
     const analysisData: SkillAnalysis = JSON.parse(cleanedText);
 
-    // Store in Supabase if available (for analytics)
-    if (supabase) {
+    // Store in Supabase if available — upsert per user+career for persistence
+    if (supabase && userId) {
+      try {
+        await supabase.from("skill_analyses").upsert(
+          {
+            user_id: userId,
+            career_title: roadmapData.careerTitle,
+            match_percentage: analysisData.overallMatchPercentage,
+            matched_skills_count: analysisData.matchedSkills.length,
+            missing_skills: analysisData.missingSkills.map((s) => s.skill),
+            analysis_data: analysisData,
+            resume_snapshot: resumeSnapshot || null,
+            roadmap_id: roadmapId || null,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id,career_title" }
+        );
+      } catch (dbError) {
+        console.warn(
+          "Failed to store analysis data:",
+          (dbError as Error).message
+        );
+      }
+    } else if (supabase) {
+      // Guest user — insert without upsert
       try {
         await supabase.from("skill_analyses").insert({
-          user_id: userId || null,
+          user_id: null,
           career_title: roadmapData.careerTitle,
           match_percentage: analysisData.overallMatchPercentage,
           matched_skills_count: analysisData.matchedSkills.length,
           missing_skills: analysisData.missingSkills.map((s) => s.skill),
-          created_at: new Date().toISOString(),
+          analysis_data: analysisData,
+          resume_snapshot: resumeSnapshot || null,
+          roadmap_id: roadmapId || null,
         });
       } catch (dbError) {
-        console.warn("Failed to store analytics data:", (dbError as Error).message);
+        console.warn(
+          "Failed to store analytics data:",
+          (dbError as Error).message
+        );
       }
     }
 
-    return NextResponse.json({ success: true, data: analysisData });
+    return NextResponse.json({
+      success: true,
+      data: analysisData,
+      resumeSnapshot: resumeSnapshot || null,
+    });
   } catch (error) {
     console.error("Skill analysis error:", error);
     return NextResponse.json(

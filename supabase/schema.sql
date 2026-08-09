@@ -24,7 +24,12 @@ CREATE TABLE IF NOT EXISTS skill_analyses (
   match_percentage INTEGER DEFAULT 0,
   matched_skills_count INTEGER DEFAULT 0,
   missing_skills TEXT[] DEFAULT '{}',
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  analysis_data JSONB,
+  resume_snapshot TEXT,
+  roadmap_id TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, career_title)
 );
 
 -- Enable Row Level Security (RLS)
@@ -46,6 +51,9 @@ CREATE POLICY "Allow individual insert to skill_analyses" ON skill_analyses
 
 CREATE POLICY "Allow individual select from skill_analyses" ON skill_analyses
   FOR SELECT USING (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);
+
+CREATE POLICY "Allow individual update to skill_analyses" ON skill_analyses
+  FOR UPDATE USING (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);
 
 CREATE POLICY "Allow individual delete from skill_analyses" ON skill_analyses
   FOR DELETE USING (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);

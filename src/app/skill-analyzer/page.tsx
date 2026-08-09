@@ -98,6 +98,7 @@ function SkillAnalyzerContent(): React.JSX.Element {
   const markAsSaved = (): void => {
     savedSnapshotRef.current = currentSnapshot;
   };
+
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -121,8 +122,16 @@ function SkillAnalyzerContent(): React.JSX.Element {
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [scanSuccess, setScanSuccess] = useState<string>("");
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+  const [isLoadingAnalysis, setIsLoadingAnalysis] = useState<boolean>(false);
   const [analysis, setAnalysis] = useState<SkillAnalysis | null>(null);
   const [error, setError] = useState<string>("");
+
+  // Track resume snapshot at time of last analysis — for "resume changed" detection
+  const analysisSnapshotRef = useRef<string | null>(null);
+  const resumeChangedSinceAnalysis =
+    analysis !== null &&
+    analysisSnapshotRef.current !== null &&
+    currentSnapshot !== analysisSnapshotRef.current;
 
   const getStorageKey = (uid: string | null): string => {
     return uid ? `nextgen_saved_roadmaps_${uid}` : "nextgen_saved_roadmaps_guest";
@@ -132,11 +141,32 @@ function SkillAnalyzerContent(): React.JSX.Element {
     return uid ? `nextgen_cached_resume_${uid}` : "nextgen_cached_resume_guest";
   };
 
+  const getAnalysisCacheKey = (uid: string | null, career?: string): string => {
+    const careerSuffix = career ? `_${career.toLowerCase().replace(/[^a-z0-9]/g, "_")}` : "";
+    return uid ? `nextgen_cached_analysis_${uid}${careerSuffix}` : `nextgen_cached_analysis_guest${careerSuffix}`;
+  };
+
   const formatFileSize = (bytes?: number | null): string => {
     if (!bytes) return "";
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const loadAnalysisCache = (uid: string | null, career?: string): void => {
+    try {
+      const key = getAnalysisCacheKey(uid, career);
+      const cachedStr = localStorage.getItem(key);
+      if (cachedStr) {
+        const cached = JSON.parse(cachedStr);
+        if (cached.analysisData) {
+          setAnalysis(cached.analysisData);
+          analysisSnapshotRef.current = cached.resumeSnapshot || null;
+        }
+      }
+    } catch {
+      // ignore
+    }
   };
 
   const loadResumeCache = (uid: string | null): void => {
@@ -205,6 +235,41 @@ function SkillAnalyzerContent(): React.JSX.Element {
     }
   };
 
+  const fetchSavedAnalysis = async (userId: string | null, careerTitle?: string): Promise<void> => {
+    // 1. Check local cache first for instant response
+    loadAnalysisCache(userId, careerTitle);
+
+    if (!userId) return;
+    setIsLoadingAnalysis(true);
+    try {
+      let url = `/api/user-analysis?userId=${userId}`;
+      if (careerTitle) url += `&careerTitle=${encodeURIComponent(careerTitle)}`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data && json.data.analysis_data) {
+          setAnalysis(json.data.analysis_data);
+          analysisSnapshotRef.current = json.data.resume_snapshot || null;
+          // Sync to local storage
+          const key = getAnalysisCacheKey(userId, careerTitle || json.data.career_title);
+          localStorage.setItem(
+            key,
+            JSON.stringify({
+              analysisData: json.data.analysis_data,
+              resumeSnapshot: json.data.resume_snapshot || null,
+              careerTitle: json.data.career_title,
+              savedAt: new Date().toISOString(),
+            })
+          );
+        }
+      }
+    } catch (e) {
+      console.warn("Could not fetch saved analysis:", e);
+    } finally {
+      setIsLoadingAnalysis(false);
+    }
+  };
+
   const fetchUserHistory = async (userId: string | null): Promise<void> => {
     setIsLoadingRoadmaps(true);
     let loadedRecords: SavedRoadmapRecord[] = [];
@@ -257,6 +322,7 @@ function SkillAnalyzerContent(): React.JSX.Element {
             r.career_title.toLowerCase() === parsed.careerTitle.toLowerCase()
         );
         setSelectedRoadmapId(matched ? matched.id : "custom");
+        fetchSavedAnalysis(userId, parsed.careerTitle);
         return;
       } catch {
         // ignore
@@ -278,6 +344,9 @@ function SkillAnalyzerContent(): React.JSX.Element {
           industryOutlook: "Refer to steps for industry outlook in Malaysia.",
         });
       }
+      fetchSavedAnalysis(userId, first.career_title);
+    } else {
+      fetchSavedAnalysis(userId);
     }
   };
 
@@ -290,6 +359,7 @@ function SkillAnalyzerContent(): React.JSX.Element {
         fetchUserHistory(uid);
         loadResumeCache(uid);
         fetchUserResume(uid);
+        fetchSavedAnalysis(uid);
       });
 
       const {
@@ -300,6 +370,7 @@ function SkillAnalyzerContent(): React.JSX.Element {
         fetchUserHistory(uid);
         loadResumeCache(uid);
         fetchUserResume(uid);
+        fetchSavedAnalysis(uid);
       });
 
       return () => {
@@ -498,6 +569,10 @@ function SkillAnalyzerContent(): React.JSX.Element {
         });
       }
       setError("");
+      // Fetch saved analysis for the newly selected career
+      setAnalysis(null);
+      analysisSnapshotRef.current = null;
+      fetchSavedAnalysis(activeUserId, found.career_title);
     }
   };
 
@@ -806,6 +881,8 @@ function SkillAnalyzerContent(): React.JSX.Element {
           resumeText: resumeText.trim(),
           roadmapData: roadmap,
           userId,
+          resumeSnapshot: currentSnapshot,
+          roadmapId: selectedRoadmapId || null,
         }),
       });
 
@@ -816,6 +893,24 @@ function SkillAnalyzerContent(): React.JSX.Element {
       }
 
       setAnalysis(data.data as SkillAnalysis);
+      // Record the resume snapshot at time of analysis
+      analysisSnapshotRef.current = currentSnapshot;
+
+      // Also cache analysis locally for instant persistence
+      try {
+        const key = getAnalysisCacheKey(activeUserId, roadmap.careerTitle);
+        localStorage.setItem(
+          key,
+          JSON.stringify({
+            analysisData: data.data,
+            resumeSnapshot: currentSnapshot,
+            careerTitle: roadmap.careerTitle,
+            savedAt: new Date().toISOString(),
+          })
+        );
+      } catch (cacheErr) {
+        console.warn("Failed to cache analysis locally:", cacheErr);
+      }
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -1570,6 +1665,22 @@ function SkillAnalyzerContent(): React.JSX.Element {
 
           {/* Analyze Button */}
           <div className={styles.analyzeActions}>
+            {resumeChangedSinceAnalysis && (
+              <div className={styles.resumeChangedBanner}>
+                <span className={styles.resumeChangedIcon}>🔄</span>
+                <div className={styles.resumeChangedText}>
+                  <strong>Resume profile has changed</strong> since your last analysis. Click below to re-analyze and get updated results.
+                </div>
+              </div>
+            )}
+
+            {isLoadingAnalysis && !analysis && (
+              <div className={styles.scanStatus}>
+                <div className="spinner" />
+                <span className={styles.scannerDesc}>Restoring your previous analysis...</span>
+              </div>
+            )}
+
             <button
               className="btn btn-primary btn-lg"
               onClick={analyzeSkills}
@@ -1580,10 +1691,20 @@ function SkillAnalyzerContent(): React.JSX.Element {
                 <>
                   <span className="spinner" /> Analyzing Skills...
                 </>
+              ) : resumeChangedSinceAnalysis ? (
+                "🔄 Re-Analyze My Skill Gap"
+              ) : analysis ? (
+                "🔍 Re-Analyze My Skill Gap"
               ) : (
                 "🔍 Analyze My Skill Gap"
               )}
             </button>
+
+            {analysis && !resumeChangedSinceAnalysis && (
+              <div className={styles.analysisSavedNotice}>
+                <span>💾</span> Analysis results saved to your profile. They will persist across sessions.
+              </div>
+            )}
           </div>
 
           {error && (

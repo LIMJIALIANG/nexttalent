@@ -1066,7 +1066,9 @@
 /* ===== Actions ===== */
 .analyzeActions {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
   margin-bottom: var(--space-6);
 }
 
@@ -1297,4 +1299,43 @@
   .formGrid {
     grid-template-columns: 1fr;
   }
+}
+
+/* ===== Resume Changed Since Analysis Banner ===== */
+.resumeChangedBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.resumeChangedIcon {
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+.resumeChangedText {
+  font-size: 0.875rem;
+  color: var(--gray-300);
+  line-height: 1.5;
+}
+
+.resumeChangedText strong {
+  color: #fbbf24;
+}
+
+/* ===== Analysis Saved Notice ===== */
+.analysisSavedNotice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.8125rem;
+  color: var(--gray-400);
+  padding: var(--space-2) 0;
+  justify-content: center;
 }
