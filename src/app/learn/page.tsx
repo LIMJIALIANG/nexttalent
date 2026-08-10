@@ -59,6 +59,7 @@ function LearnContent(): React.JSX.Element {
   const [selectedTimeframe, setSelectedTimeframe] = useState<HistoryTimeframe>(7); // Default: 7 days ago
   const [isLoadingHistory, setIsLoadingHistory] = useState<boolean>(true);
   const [historySearchQuery, setHistorySearchQuery] = useState<string>("");
+  const [isHistoryExpanded, setIsHistoryExpanded] = useState<boolean>(false); // Collapsed by default
 
   // Confirm Modal state
   const [confirmModal, setConfirmModal] = useState<{
@@ -419,227 +420,270 @@ function LearnContent(): React.JSX.Element {
         </div>
       </section>
 
-      {/* ===== SECTION: Previously Seen Courses History ===== */}
+      {/* ===== SECTION: Previously Seen Courses History (Collapsible, collapsed by default) ===== */}
       <section className={styles.historySection}>
         <div className="container">
-          <div className={styles.historyCard}>
-            <div className={styles.historyHeader}>
+          <div className={`${styles.historyCard} ${!isHistoryExpanded ? styles.historyCardCollapsed : ""}`}>
+            {/* Header / Accordion Trigger */}
+            <div
+              className={styles.historyHeaderToggle}
+              onClick={() => setIsHistoryExpanded(!isHistoryExpanded)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setIsHistoryExpanded(!isHistoryExpanded);
+                }
+              }}
+              id="history-toggle-header"
+            >
               <div className={styles.historyTitleGroup}>
                 <div className={styles.historyIcon}>🕒</div>
                 <div>
-                  <h2 className={styles.historyTitle}>Recently Viewed Courses</h2>
+                  <div className={styles.historyTitleRow}>
+                    <h2 className={styles.historyTitle}>Recently Viewed Courses</h2>
+                    <span className={styles.historyCountBadge}>
+                      {displayedSeenCourses.length} {displayedSeenCourses.length === 1 ? "course" : "courses"} (
+                      {getTimeframeLabel(selectedTimeframe)})
+                    </span>
+                  </div>
                   <p className={styles.historySubtitle}>
-                    Review courses you have previously clicked and explored
+                    {isHistoryExpanded
+                      ? "Review courses you have previously clicked and explored"
+                      : "Click to expand your course viewing history across 7, 15, or 30 days"}
                   </p>
                 </div>
               </div>
 
-              {/* Timeframe Filter Selector (7 days default, 15 days, 1 month, all) */}
-              <div className={styles.timeframeFilterGroup}>
-                <span className={styles.filterLabel}>Timeframe:</span>
-                <div className={styles.timeframePills}>
-                  <button
-                    type="button"
-                    className={`${styles.timeframePill} ${
-                      selectedTimeframe === 7 ? styles.activeTimeframePill : ""
-                    }`}
-                    onClick={() => handleTimeframeChange(7)}
-                    id="filter-7-days"
-                  >
-                    📅 7 Days Ago
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.timeframePill} ${
-                      selectedTimeframe === 15 ? styles.activeTimeframePill : ""
-                    }`}
-                    onClick={() => handleTimeframeChange(15)}
-                    id="filter-15-days"
-                  >
-                    📅 15 Days Ago
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.timeframePill} ${
-                      selectedTimeframe === 30 ? styles.activeTimeframePill : ""
-                    }`}
-                    onClick={() => handleTimeframeChange(30)}
-                    id="filter-30-days"
-                  >
-                    📅 1 Month Ago
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.timeframePill} ${
-                      selectedTimeframe === "all" ? styles.activeTimeframePill : ""
-                    }`}
-                    onClick={() => handleTimeframeChange("all")}
-                    id="filter-all-time"
-                  >
-                    🌐 All Time
-                  </button>
-                </div>
+              <div className={styles.historyToggleAction}>
+                <button
+                  type="button"
+                  className={`btn ${isHistoryExpanded ? "btn-secondary" : "btn-primary"} btn-sm ${styles.toggleExpandBtn}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsHistoryExpanded(!isHistoryExpanded);
+                  }}
+                  id="history-toggle-btn"
+                >
+                  {isHistoryExpanded ? "▲ Hide History" : "▼ Show History"}
+                </button>
               </div>
             </div>
 
-            {/* History Action & Search Bar */}
-            {allSeenCourses.length > 0 && (
-              <div className={styles.historyToolbar}>
-                <div className={styles.historyStats}>
-                  <span className={styles.statPill}>
-                    Showing <strong>{filteredHistory.length}</strong> of{" "}
-                    <strong>{displayedSeenCourses.length}</strong> seen courses (
-                    {getTimeframeLabel(selectedTimeframe)})
-                  </span>
-                </div>
-
-                <div className={styles.historyControls}>
-                  <div className={styles.historySearchWrapper}>
-                    <input
-                      type="text"
-                      className={`input ${styles.historySearchInput}`}
-                      placeholder="Filter viewed courses..."
-                      value={historySearchQuery}
-                      onChange={(e) => setHistorySearchQuery(e.target.value)}
-                    />
+            {/* Collapsible Content Body */}
+            {isHistoryExpanded && (
+              <div className={styles.historyBody}>
+                {/* Timeframe Filter Selector */}
+                <div className={styles.timeframeFilterRow}>
+                  <div className={styles.timeframeFilterGroup}>
+                    <span className={styles.filterLabel}>Timeframe:</span>
+                    <div className={styles.timeframePills}>
+                      <button
+                        type="button"
+                        className={`${styles.timeframePill} ${
+                          selectedTimeframe === 7 ? styles.activeTimeframePill : ""
+                        }`}
+                        onClick={() => handleTimeframeChange(7)}
+                        id="filter-7-days"
+                      >
+                        📅 7 Days Ago
+                        <span className={styles.defaultBadge}>Default</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={`${styles.timeframePill} ${
+                          selectedTimeframe === 15 ? styles.activeTimeframePill : ""
+                        }`}
+                        onClick={() => handleTimeframeChange(15)}
+                        id="filter-15-days"
+                      >
+                        📅 15 Days Ago
+                      </button>
+                      <button
+                        type="button"
+                        className={`${styles.timeframePill} ${
+                          selectedTimeframe === 30 ? styles.activeTimeframePill : ""
+                        }`}
+                        onClick={() => handleTimeframeChange(30)}
+                        id="filter-30-days"
+                      >
+                        📅 1 Month Ago
+                      </button>
+                      <button
+                        type="button"
+                        className={`${styles.timeframePill} ${
+                          selectedTimeframe === "all" ? styles.activeTimeframePill : ""
+                        }`}
+                        onClick={() => handleTimeframeChange("all")}
+                        id="filter-all-time"
+                      >
+                        🌐 All Time
+                      </button>
+                    </div>
                   </div>
-
-                  <button
-                    type="button"
-                    className={styles.clearHistoryBtn}
-                    onClick={handleClearHistory}
-                    title="Clear history"
-                  >
-                    🗑️ Clear History
-                  </button>
                 </div>
-              </div>
-            )}
 
-            {/* History Content Grid or Empty States */}
-            {isLoadingHistory ? (
-              <div className={styles.historyLoading}>
-                <div className="spinner spinner-md" />
-                <p>Loading your course history...</p>
-              </div>
-            ) : filteredHistory.length > 0 ? (
-              <div className={styles.historyGrid}>
-                {filteredHistory.map((record) => (
-                  <a
-                    key={`${record.id}-${record.viewed_at}`}
-                    href={record.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.historyCourseCard}
-                    onClick={() =>
-                      handleCourseClick(
-                        {
-                          id: record.course_id,
-                          title: record.course_title,
-                          provider: record.provider,
-                          url: record.url,
-                          duration: record.duration,
-                          level: record.level as Course["level"],
-                          keywords: record.keywords,
-                        },
-                        record.skill_category
-                      )
-                    }
-                  >
-                    <div className={styles.historyCardTop}>
-                      <div className={styles.historyTimestamp}>
-                        <span className={styles.clockIcon}>🕒</span>
-                        <span>{formatRelativeTime(record.viewed_at)}</span>
+                {/* History Action & Search Bar */}
+                {allSeenCourses.length > 0 && (
+                  <div className={styles.historyToolbar}>
+                    <div className={styles.historyStats}>
+                      <span className={styles.statPill}>
+                        Showing <strong>{filteredHistory.length}</strong> of{" "}
+                        <strong>{displayedSeenCourses.length}</strong> seen courses (
+                        {getTimeframeLabel(selectedTimeframe)})
+                      </span>
+                    </div>
+
+                    <div className={styles.historyControls}>
+                      <div className={styles.historySearchWrapper}>
+                        <input
+                          type="text"
+                          className={`input ${styles.historySearchInput}`}
+                          placeholder="Filter viewed courses..."
+                          value={historySearchQuery}
+                          onChange={(e) => setHistorySearchQuery(e.target.value)}
+                        />
                       </div>
-                      <div className={styles.historyCardActions}>
-                        {record.click_count && record.click_count > 1 && (
-                          <span className={styles.visitedBadge}>
-                            Visited {record.click_count}x
-                          </span>
+
+                      <button
+                        type="button"
+                        className={styles.clearHistoryBtn}
+                        onClick={handleClearHistory}
+                        title="Clear history"
+                      >
+                        🗑️ Clear History
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* History Content Grid or Empty States */}
+                {isLoadingHistory ? (
+                  <div className={styles.historyLoading}>
+                    <div className="spinner spinner-md" />
+                    <p>Loading your course history...</p>
+                  </div>
+                ) : filteredHistory.length > 0 ? (
+                  <div className={styles.historyGrid}>
+                    {filteredHistory.map((record) => (
+                      <a
+                        key={`${record.id}-${record.viewed_at}`}
+                        href={record.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.historyCourseCard}
+                        onClick={() =>
+                          handleCourseClick(
+                            {
+                              id: record.course_id,
+                              title: record.course_title,
+                              provider: record.provider,
+                              url: record.url,
+                              duration: record.duration,
+                              level: record.level as Course["level"],
+                              keywords: record.keywords,
+                            },
+                            record.skill_category
+                          )
+                        }
+                      >
+                        <div className={styles.historyCardTop}>
+                          <div className={styles.historyTimestamp}>
+                            <span className={styles.clockIcon}>🕒</span>
+                            <span>{formatRelativeTime(record.viewed_at)}</span>
+                          </div>
+                          <div className={styles.historyCardActions}>
+                            {record.click_count && record.click_count > 1 && (
+                              <span className={styles.visitedBadge}>
+                                Visited {record.click_count}x
+                              </span>
+                            )}
+                            <button
+                              type="button"
+                              className={styles.removeHistoryItemBtn}
+                              onClick={(e) => handleDeleteHistoryItem(e, record)}
+                              title="Remove from history"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className={styles.courseProvider}>{record.provider}</div>
+                        <h4 className={styles.courseTitle}>{record.course_title}</h4>
+
+                        {record.skill_category && (
+                          <div className={styles.categoryBadgeWrapper}>
+                            <span className="badge badge-accent">
+                              Skill: {record.skill_category}
+                            </span>
+                          </div>
                         )}
+
+                        <div className={styles.courseMeta}>
+                          <span className={`badge ${getLevelColor(record.level)}`}>
+                            {record.level}
+                          </span>
+                          <span className={styles.courseDuration}>
+                            ⏱ {record.duration}
+                          </span>
+                        </div>
+
+                        <div className={styles.courseKeywords}>
+                          {record.keywords.slice(0, 3).map((kw) => (
+                            <span key={kw} className={styles.keyword}>
+                              {kw}
+                            </span>
+                          ))}
+                        </div>
+
+                        <div className={styles.historyCardFooter}>
+                          <span className={styles.revisitLink}>
+                            Revisit Course ↗
+                          </span>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                ) : allSeenCourses.length > 0 ? (
+                  <div className={styles.historyEmpty}>
+                    <div className={styles.emptyIcon}>🔍</div>
+                    <p>
+                      No courses viewed within <strong>{getTimeframeLabel(selectedTimeframe)}</strong>.
+                    </p>
+                    <div className={styles.emptyActions}>
+                      {selectedTimeframe !== 30 && (
                         <button
                           type="button"
-                          className={styles.removeHistoryItemBtn}
-                          onClick={(e) => handleDeleteHistoryItem(e, record)}
-                          title="Remove from history"
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => handleTimeframeChange(30)}
                         >
-                          ✕
+                          View Last 1 Month
                         </button>
-                      </div>
+                      )}
+                      {selectedTimeframe !== "all" && (
+                        <button
+                          type="button"
+                          className="btn btn-primary btn-sm"
+                          onClick={() => handleTimeframeChange("all")}
+                        >
+                          View All-Time History ({allSeenCourses.length} courses)
+                        </button>
+                      )}
                     </div>
-
-                    <div className={styles.courseProvider}>{record.provider}</div>
-                    <h4 className={styles.courseTitle}>{record.course_title}</h4>
-
-                    {record.skill_category && (
-                      <div className={styles.categoryBadgeWrapper}>
-                        <span className="badge badge-accent">
-                          Skill: {record.skill_category}
-                        </span>
-                      </div>
-                    )}
-
-                    <div className={styles.courseMeta}>
-                      <span className={`badge ${getLevelColor(record.level)}`}>
-                        {record.level}
-                      </span>
-                      <span className={styles.courseDuration}>
-                        ⏱ {record.duration}
-                      </span>
-                    </div>
-
-                    <div className={styles.courseKeywords}>
-                      {record.keywords.slice(0, 3).map((kw) => (
-                        <span key={kw} className={styles.keyword}>
-                          {kw}
-                        </span>
-                      ))}
-                    </div>
-
-                    <div className={styles.historyCardFooter}>
-                      <span className={styles.revisitLink}>
-                        Revisit Course ↗
-                      </span>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            ) : allSeenCourses.length > 0 ? (
-              <div className={styles.historyEmpty}>
-                <div className={styles.emptyIcon}>🔍</div>
-                <p>
-                  No courses viewed within <strong>{getTimeframeLabel(selectedTimeframe)}</strong>.
-                </p>
-                <div className={styles.emptyActions}>
-                  {selectedTimeframe !== 30 && (
-                    <button
-                      type="button"
-                      className="btn btn-secondary btn-sm"
-                      onClick={() => handleTimeframeChange(30)}
-                    >
-                      View Last 1 Month
-                    </button>
-                  )}
-                  {selectedTimeframe !== "all" && (
-                    <button
-                      type="button"
-                      className="btn btn-primary btn-sm"
-                      onClick={() => handleTimeframeChange("all")}
-                    >
-                      View All-Time History ({allSeenCourses.length} courses)
-                    </button>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className={styles.historyEmpty}>
-                <div className={styles.emptyIcon}>📖</div>
-                <p>
-                  You haven't viewed any courses yet.
-                </p>
-                <span className={styles.emptyHint}>
-                  Click on any recommended course below to open the lesson and automatically track it here!
-                </span>
+                  </div>
+                ) : (
+                  <div className={styles.historyEmpty}>
+                    <div className={styles.emptyIcon}>📖</div>
+                    <p>
+                      You haven't viewed any courses yet.
+                    </p>
+                    <span className={styles.emptyHint}>
+                      Click on any recommended course below to open the lesson and automatically track it here!
+                    </span>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -655,8 +699,8 @@ function LearnContent(): React.JSX.Element {
               <p>
                 Enter the skills you want to learn, separated by commas. Or go
                 through{" "}
-                <Link href="/voice-roadmap">Module 1 (Voice-to-Roadmap)</Link> →{" "}
-                <Link href="/skill-analyzer">Module 2 (Skill-Gap Analyzer)</Link> for AI-powered
+                <Link href="/voice-roadmap">Voice-to-Roadmap</Link> →{" "}
+                <Link href="/skill-analyzer">Skill-Gap Analyzer</Link> for AI-powered
                 recommendations.
               </p>
               <div className={styles.searchInput}>
