@@ -944,7 +944,6 @@ function SkillAnalyzerContent(): React.JSX.Element {
       <section className={styles.hero}>
         <div className={styles.heroGlow} />
         <div className={styles.heroContent}>
-          <span className="badge badge-primary">Skill-Gap Analysis</span>
           <h1 className={styles.heroTitle}>
             Automated <span className="text-gradient">Skill-Gap</span> Analyzer
           </h1>

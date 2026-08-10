@@ -62,7 +62,7 @@ const STATS: StatInfo[] = [
   { value: "30s", label: "Average Roadmap Time" },
   { value: "AI", label: "Gemini 2.5 Flash" },
   { value: "25+", label: "Courses Database" },
-  { value: "4", label: "Integrated Modules" },
+  { value: "4", label: "Core Features" },
 ];
 
 export default function HomePage(): React.JSX.Element {
@@ -79,10 +79,6 @@ export default function HomePage(): React.JSX.Element {
           ))}
         </div>
         <div className={styles.heroContent}>
-          <div className={styles.heroBadge}>
-            <span className={styles.heroBadgeDot} />
-            URIIS Student Biz Innov Challenge 2026
-          </div>
           <h1 className={styles.heroTitle}>
             Voice-Activated
             <br />
@@ -128,7 +124,6 @@ export default function HomePage(): React.JSX.Element {
       <section className={styles.problem}>
         <div className="container">
           <div className={styles.sectionHeader}>
-            <span className="badge badge-gold">Problem Statement #3</span>
             <h2 className={styles.sectionTitle}>
               Future Talent Ecosystem:{" "}
               <span className="text-gradient">AI for Employment & Skills</span>
@@ -147,7 +142,6 @@ export default function HomePage(): React.JSX.Element {
       <section className={styles.modules}>
         <div className="container">
           <div className={styles.sectionHeader}>
-            <span className="badge badge-accent">4-Module System</span>
             <h2 className={styles.sectionTitle}>
               How It <span className="text-gradient">Works</span>
             </h2>
@@ -166,9 +160,6 @@ export default function HomePage(): React.JSX.Element {
                 style={{ animationDelay: `${index * 0.1}s` }}
                 id={`module-card-${index + 1}`}
               >
-                <div className={styles.moduleTag}>
-                  <span className={`badge badge-${mod.color}`}>{mod.tag}</span>
-                </div>
                 <div className={styles.moduleIcon}>{mod.icon}</div>
                 <h3 className={styles.moduleTitle}>{mod.title}</h3>
                 <p className={styles.moduleDesc}>{mod.description}</p>
@@ -183,7 +174,6 @@ export default function HomePage(): React.JSX.Element {
       <section className={styles.flow}>
         <div className="container">
           <div className={styles.sectionHeader}>
-            <span className="badge badge-primary">User Journey</span>
             <h2 className={styles.sectionTitle}>
               From Voice to{" "}
               <span className="text-gradient">Career Clarity</span>

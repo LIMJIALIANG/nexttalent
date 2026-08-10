@@ -322,7 +322,6 @@ export default function DashboardPage(): React.JSX.Element {
       <section className={styles.hero}>
         <div className={styles.heroGlow} />
         <div className={styles.heroContent}>
-          <span className="badge badge-primary">Module 4</span>
           <h1 className={styles.heroTitle}>
             Analytics <span className="text-gradient">Dashboard</span>
           </h1>

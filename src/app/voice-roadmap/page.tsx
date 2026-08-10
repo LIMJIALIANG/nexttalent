@@ -478,7 +478,6 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
       <section className={styles.hero}>
         <div className={styles.heroGlow} />
         <div className={styles.heroContent}>
-          <span className="badge badge-accent">Module 1</span>
           <h1 className={styles.heroTitle}>
             Voice-to-Roadmap <span className="text-gradient">AI Assistant</span>
           </h1>

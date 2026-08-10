@@ -195,12 +195,12 @@
 
 /* ===== Problem Statement ===== */
 .problem {
-  padding: var(--space-20) 0 var(--space-12);
+  padding: var(--space-12) 0 0;
 }
 
 /* ===== Modules Grid ===== */
 .modules {
-  padding: var(--space-12) 0 var(--space-20);
+  padding: var(--space-4) 0 0;
 }
 
 .modulesGrid {
@@ -278,7 +278,7 @@
 
 /* ===== Flow Steps ===== */
 .flow {
-  padding: var(--space-12) 0 var(--space-20);
+  padding: var(--space-12) 0 var(--space-4);
 }
 
 .flowSteps {
@@ -333,7 +333,7 @@
 
 /* ===== CTA ===== */
 .cta {
-  padding: var(--space-12) 0 var(--space-20);
+  padding: var(--space-12) 0;
 }
 
 .ctaCard {

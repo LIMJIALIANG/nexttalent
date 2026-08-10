@@ -409,7 +409,6 @@ function LearnContent(): React.JSX.Element {
       <section className={styles.hero}>
         <div className={styles.heroGlow} />
         <div className={styles.heroContent}>
-          <span className="badge badge-gold">Module 3</span>
           <h1 className={styles.heroTitle}>
             Micro-Learning <span className="text-gradient">Recommender</span>
           </h1>
