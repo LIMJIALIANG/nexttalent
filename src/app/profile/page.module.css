@@ -233,3 +233,27 @@
     padding: var(--space-6);
   }
 }
+
+/* ===== PROFILE — LIGHT THEME OVERRIDES ===== */
+:global([data-theme="light"]) .userName {
+  color: var(--gray-900);
+}
+
+:global([data-theme="light"]) .cardTitle {
+  color: var(--gray-900);
+  border-bottom-color: var(--gray-200);
+}
+
+:global([data-theme="light"]) .formGroup label {
+  color: var(--gray-700);
+}
+
+:global([data-theme="light"]) .providerInfo {
+  border-top-color: var(--gray-200);
+  color: var(--gray-500);
+}
+
+:global([data-theme="light"]) .providerInfo strong {
+  color: var(--gray-700);
+}
+

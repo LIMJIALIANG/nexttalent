@@ -114,6 +114,38 @@
   font-size: 0.75rem;
 }
 
+:global([data-theme="light"]) .footer {
+  background: #111827;
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme="light"]) .logo {
+  color: #ffffff;
+}
+
+:global([data-theme="light"]) .tagline,
+:global([data-theme="light"]) .footerLink {
+  color: #9ca3af;
+}
+
+:global([data-theme="light"]) .uriis,
+:global([data-theme="light"]) .footerText,
+:global([data-theme="light"]) .footerBottom p {
+  color: #6b7280;
+}
+
+:global([data-theme="light"]) .colTitle {
+  color: #ffffff;
+}
+
+:global([data-theme="light"]) .credits {
+  color: #4b5563;
+}
+
+:global([data-theme="light"]) .footerLink:hover {
+  color: var(--accent-400);
+}
+
 @media (max-width: 768px) {
   .footerGrid {
     grid-template-columns: 1fr;

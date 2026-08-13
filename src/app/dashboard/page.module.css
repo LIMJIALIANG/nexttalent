@@ -100,12 +100,13 @@
   border-radius: var(--radius-xl);
   padding: var(--space-6);
   text-align: center;
+  box-shadow: var(--panel-shadow);
   transition: transform var(--transition-base), box-shadow var(--transition-base);
 }
 
 .kpiCard:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--panel-shadow-strong);
 }
 
 .kpiIcon {
@@ -144,6 +145,7 @@
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
   padding: var(--space-6);
+  box-shadow: var(--panel-shadow);
 }
 
 .chartTitle {
@@ -173,6 +175,7 @@
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
   padding: var(--space-6);
+  box-shadow: var(--panel-shadow);
 }
 
 .tableWrapper {
@@ -274,3 +277,32 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ===== DASHBOARD — LIGHT THEME OVERRIDES ===== */
+:global([data-theme="light"]) .kpiValue {
+  color: var(--gray-900);
+}
+
+:global([data-theme="light"]) .insightCard h4 {
+  color: var(--gray-900);
+}
+
+:global([data-theme="light"]) .trendTable td {
+  color: var(--gray-700);
+  border-bottom-color: var(--gray-200);
+}
+
+:global([data-theme="light"]) .trendTable tr:hover td {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+:global([data-theme="light"]) .chartCard,
+:global([data-theme="light"]) .trendCard {
+  background: #ffffff;
+  border-color: var(--gray-200);
+}
+
+:global([data-theme="light"]) .trendTable th {
+  border-bottom-color: var(--gray-200);
+}
+

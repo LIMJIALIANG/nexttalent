@@ -1339,3 +1339,197 @@
   padding: var(--space-2) 0;
   justify-content: center;
 }
+
+/* ===== SKILL ANALYZER — LIGHT THEME OVERRIDES ===== */
+:global([data-theme="light"]) .contextTitle {
+  color: var(--gray-900);
+}
+
+:global([data-theme="light"]) .contextDesc {
+  color: var(--gray-600);
+}
+
+:global([data-theme="light"]) .dropdownTrigger {
+  background: #ffffff;
+  color: var(--gray-800);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+:global([data-theme="light"]) .dropdownTrigger:hover {
+  background: var(--gray-50);
+}
+
+:global([data-theme="light"]) .dropdownTriggerTitle {
+  color: var(--gray-900);
+}
+
+:global([data-theme="light"]) .dropdownMenu {
+  background: #ffffff;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+  border-color: var(--gray-200);
+}
+
+:global([data-theme="light"]) .dropdownHeader {
+  border-bottom-color: var(--gray-200);
+}
+
+:global([data-theme="light"]) .dropdownItem:hover {
+  background: var(--gray-50);
+}
+
+:global([data-theme="light"]) .dropdownItemTitle {
+  color: var(--gray-900);
+}
+
+:global([data-theme="light"]) .dropdownFooter {
+  border-top-color: var(--gray-200);
+}
+
+:global([data-theme="light"]) .emptyRoadmapTitle {
+  color: var(--gray-900);
+}
+
+:global([data-theme="light"]) .emptyRoadmapDesc {
+  color: var(--gray-600);
+}
+
+:global([data-theme="light"]) .scannerCard {
+  background: #ffffff;
+  box-shadow: var(--glass-shadow);
+  border-color: var(--gray-200);
+}
+
+:global([data-theme="light"]) .scannerTitle {
+  color: var(--gray-900);
+}
+
+:global([data-theme="light"]) .fileUploadArea {
+  border-color: var(--gray-300);
+  background: rgba(0, 0, 0, 0.01);
+}
+
+:global([data-theme="light"]) .fileUploadArea:hover {
+  border-color: var(--primary-500);
+  background: rgba(13, 139, 217, 0.04);
+}
+
+:global([data-theme="light"]) .resumeViewerHeader {
+  background: var(--gray-50);
+  border-color: var(--gray-200);
+}
+
+:global([data-theme="light"]) .resumeFileName {
+  color: var(--gray-900);
+}
+
+:global([data-theme="light"]) .documentPreviewBox {
+  border-color: var(--gray-200);
+  background: var(--gray-50);
+}
+
+:global([data-theme="light"]) .imagePreviewWrapper {
+  background: var(--gray-100);
+}
+
+:global([data-theme="light"]) .resumeImagePreview {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+:global([data-theme="light"]) .formCard {
+  background: #ffffff;
+  box-shadow: var(--glass-shadow);
+  border-color: var(--gray-200);
+}
+
+:global([data-theme="light"]) .formToolbar {
+  border-bottom-color: var(--gray-200);
+}
+
+:global([data-theme="light"]) .formToolbarTitle {
+  color: var(--gray-900);
+}
+
+:global([data-theme="light"]) .sectionHeaderRow {
+  border-bottom-color: var(--gray-200);
+}
+
+:global([data-theme="light"]) .sectionTitle {
+  color: var(--gray-900);
+}
+
+:global([data-theme="light"]) .clearSectionBtn {
+  background: var(--gray-100);
+  border-color: var(--gray-300);
+  color: var(--gray-600);
+}
+
+:global([data-theme="light"]) .clearSectionBtn:hover {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+:global([data-theme="light"]) .inputListItem {
+  background: var(--gray-50);
+  border-color: var(--gray-200);
+}
+
+:global([data-theme="light"]) .previewModalContent {
+  background: #ffffff;
+  border-color: var(--gray-200);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12);
+}
+
+:global([data-theme="light"]) .previewModalHeader {
+  border-bottom-color: var(--gray-200);
+  background: var(--gray-50);
+}
+
+:global([data-theme="light"]) .previewModalTitle {
+  color: var(--gray-900);
+}
+
+:global([data-theme="light"]) .previewModalBody {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+:global([data-theme="light"]) .previewModalImage {
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+}
+
+:global([data-theme="light"]) .previewModalCloseBtn {
+  background: var(--gray-100);
+  border-color: var(--gray-300);
+  color: var(--gray-600);
+}
+
+:global([data-theme="light"]) .previewModalCloseBtn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+:global([data-theme="light"]) .summaryBox {
+  background: var(--gray-50);
+}
+
+:global([data-theme="light"]) .summaryBox h4 {
+  color: var(--gray-900);
+}
+
+:global([data-theme="light"]) .skillName {
+  color: var(--gray-900);
+}
+
+:global([data-theme="light"]) .skillItem {
+  background: #ffffff;
+  border-color: var(--gray-200);
+}
+
+:global([data-theme="light"]) .skillItem:hover {
+  border-color: var(--primary-300);
+}
+
+:global([data-theme="light"]) .resumeChangedText {
+  color: var(--gray-700);
+}

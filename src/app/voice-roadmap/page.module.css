@@ -588,3 +588,29 @@
   gap: var(--space-2);
 }
 
+/* ===== VOICE ROADMAP — LIGHT THEME OVERRIDES ===== */
+:global([data-theme="light"]) .historyTitle {
+  color: var(--gray-900);
+}
+
+:global([data-theme="light"]) .historyCard {
+  background: #ffffff;
+  border-color: var(--gray-200);
+}
+
+:global([data-theme="light"]) .historyCard:hover {
+  background: #f8fafc;
+  border-color: rgba(0, 212, 160, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+:global([data-theme="light"]) .historyCardTitle {
+  color: var(--gray-900);
+}
+
+:global([data-theme="light"]) .historyTranscriptSnippet {
+  background: var(--gray-100);
+  color: var(--gray-700);
+}
+
+

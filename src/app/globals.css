@@ -60,7 +60,9 @@
   /* Glassmorphism */
   --glass-bg: rgba(17, 24, 39, 0.7);
   --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --panel-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
+  --panel-shadow-strong: 0 18px 40px rgba(15, 23, 42, 0.22);
+  --glass-shadow: var(--panel-shadow);
 
   /* Typography */
   --font-primary: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
@@ -207,7 +209,7 @@ button {
 
 .glass-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--panel-shadow-strong);
 }
 
 /* ===== Button Styles ===== */
@@ -480,4 +482,167 @@ button {
   .section {
     padding: var(--space-12) 0;
   }
+}
+
+/* ==========================================================
+   LIGHT THEME OVERRIDES
+   ========================================================== */
+[data-theme="light"] {
+  /* Surfaces — clean whites and soft grays */
+  --surface-0: #f5f7fa;
+  --surface-1: #ffffff;
+  --surface-2: #f0f2f5;
+  --surface-3: #e4e7ec;
+  --surface-4: #d1d5db;
+
+  /* Glassmorphism — light version */
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --panel-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  --panel-shadow-strong: 0 18px 34px rgba(15, 23, 42, 0.12);
+  --glass-shadow: var(--panel-shadow);
+
+  /* Gradients — lighter backgrounds */
+  --gradient-hero: linear-gradient(
+    160deg,
+    #f0f4f8 0%,
+    #dbeafe 40%,
+    #e0f2fe 70%,
+    #f0f4f8 100%
+  );
+  --gradient-card: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(240, 242, 245, 0.7) 100%
+  );
+}
+
+/* Body & Text */
+[data-theme="light"] body {
+  background: var(--surface-0);
+  color: var(--gray-700);
+}
+
+[data-theme="light"] h1,
+[data-theme="light"] h2,
+[data-theme="light"] h3,
+[data-theme="light"] h4,
+[data-theme="light"] h5,
+[data-theme="light"] h6 {
+  color: var(--gray-900);
+}
+
+[data-theme="light"] a {
+  color: var(--primary-600);
+}
+
+[data-theme="light"] a:hover {
+  color: var(--primary-700);
+}
+
+/* Glass card */
+[data-theme="light"] .glass-card {
+  background: var(--glass-bg);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+[data-theme="light"] .glass-card:hover {
+  box-shadow: var(--panel-shadow-strong);
+}
+
+/* Buttons */
+[data-theme="light"] .btn-secondary {
+  color: var(--primary-600);
+  border-color: var(--primary-500);
+}
+
+[data-theme="light"] .btn-secondary:hover {
+  background: rgba(13, 139, 217, 0.08);
+  border-color: var(--primary-600);
+  color: var(--primary-700);
+}
+
+[data-theme="light"] .btn-ghost {
+  color: var(--gray-600);
+  border-color: var(--gray-300);
+}
+
+[data-theme="light"] .btn-ghost:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--gray-900);
+  border-color: var(--gray-400);
+}
+
+/* Form inputs */
+[data-theme="light"] .input,
+[data-theme="light"] .textarea {
+  background: #ffffff;
+  border-color: var(--gray-300);
+  color: var(--gray-900);
+}
+
+[data-theme="light"] .input:focus,
+[data-theme="light"] .textarea:focus {
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 3px rgba(13, 139, 217, 0.12);
+}
+
+[data-theme="light"] .input::placeholder,
+[data-theme="light"] .textarea::placeholder {
+  color: var(--gray-400);
+}
+
+/* Badges */
+[data-theme="light"] .badge-primary {
+  background: rgba(13, 139, 217, 0.1);
+  border-color: rgba(13, 139, 217, 0.25);
+}
+
+[data-theme="light"] .badge-accent {
+  background: rgba(0, 170, 128, 0.1);
+  color: var(--accent-700);
+  border-color: rgba(0, 170, 128, 0.25);
+}
+
+[data-theme="light"] .badge-gold {
+  background: rgba(240, 180, 41, 0.12);
+  color: var(--gold-600);
+  border-color: rgba(240, 180, 41, 0.25);
+}
+
+[data-theme="light"] .badge-danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+[data-theme="light"] .badge-success {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+/* Progress bar */
+[data-theme="light"] .progress-bar {
+  background: var(--gray-200);
+}
+
+/* Spinner */
+[data-theme="light"] .spinner {
+  border-color: var(--gray-200);
+  border-top-color: var(--primary-500);
+}
+
+/* Scrollbar */
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background: var(--gray-100);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-400);
 }

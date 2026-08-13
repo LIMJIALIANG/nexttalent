@@ -1,7 +1,12 @@
+"use client";
+
 import Link from "next/link";
+import { useTheme } from "@/context/ThemeContext";
 import styles from "./Footer.module.css";
 
 export default function Footer(): React.JSX.Element {
+  const { theme } = useTheme();
+
   return (
     <footer className={styles.footer}>
       <div className={styles.footerInner}>

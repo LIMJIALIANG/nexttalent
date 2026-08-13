@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { useTheme } from "@/context/ThemeContext";
 import styles from "./Navbar.module.css";
 
 interface NavLink {
@@ -28,6 +29,7 @@ const NAV_LINKS: NavLink[] = [
 export default function Navbar(): React.JSX.Element {
   const pathname = usePathname();
   const router = useRouter();
+  const { theme, toggleTheme } = useTheme();
   const [scrolled, setScrolled] = useState<boolean>(false);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const [user, setUser] = useState<UserInfo | null>(null);
@@ -166,11 +168,31 @@ export default function Navbar(): React.JSX.Element {
                 🔑 Login / Register
               </Link>
             )}
+
+            {/* Theme Toggle — mobile */}
+            <button
+              className={styles.themeToggleMobile}
+              onClick={toggleTheme}
+              aria-label="Toggle theme"
+              id="theme-toggle-mobile"
+            >
+              {theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode"}
+            </button>
           </div>
         </div>
 
         {/* Auth section (visible on desktop) */}
         <div className={styles.navAuth}>
+          <button
+            className={styles.themeToggle}
+            onClick={toggleTheme}
+            aria-label="Toggle theme"
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            id="theme-toggle-btn"
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
+          </button>
+
           {user ? (
             <div className={styles.userMenu}>
               <button
