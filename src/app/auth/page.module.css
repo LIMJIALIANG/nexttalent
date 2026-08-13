@@ -70,6 +70,13 @@
   color: white;
 }
 
+.authLogoImage {
+  height: 38px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+
 .authLogoIcon {
   font-size: 2rem;
   filter: drop-shadow(0 0 12px rgba(0, 212, 160, 0.6));

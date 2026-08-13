@@ -73,5 +73,11 @@ If configuring Supabase, run the SQL schema located in `supabase/schema.sql` ins
 
 ---
 
+## 🎨 Logo & Brand Customization
+* **Branding Locations:** The brand logo is integrated in the Navbar, Footer, and Auth pages.
+* **Transparency Processor:** Navigate to `/process-logo` on your running local server (`http://localhost:3000/process-logo`) to key out solid background colors of the logo image.
+
+---
+
 ## 📄 Documentation
 For detailed step-by-step instructions, troubleshooting tips, and Vercel deployment guidelines, refer to **[SETUP_GUIDE.txt](file:///c:/Visual%20Studio%20Code/nexttalent/SETUP_GUIDE.txt)**.

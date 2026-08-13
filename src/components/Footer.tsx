@@ -9,7 +9,17 @@ export default function Footer(): React.JSX.Element {
           {/* Brand */}
           <div className={styles.footerBrand}>
             <Link href="/" className={styles.logo}>
-              <span className={styles.logoIcon}>⚡</span>
+              <img
+                src="/nexttalent-logo/nexttalent-logo-only-dark.png"
+                alt="NextTalent"
+                className={styles.logoImage}
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                  const sibling = e.currentTarget.nextElementSibling;
+                  if (sibling) (sibling as HTMLElement).style.display = "inline";
+                }}
+              />
+              <span className={styles.logoIcon} style={{ display: "none" }}>⚡</span>
               <span className={styles.logoText}>NextTalent</span>
             </Link>
             <p className={styles.tagline}>

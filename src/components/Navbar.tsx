@@ -118,7 +118,17 @@ export default function Navbar(): React.JSX.Element {
     <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ""}`}>
       <div className={styles.navInner}>
         <Link href="/" className={styles.logo}>
-          <span className={styles.logoIcon}>⚡</span>
+          <img
+            src="/nexttalent-logo/nexttalent-logo-only-dark.png"
+            alt="NextTalent"
+            className={styles.logoImage}
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+              const sibling = e.currentTarget.nextElementSibling;
+              if (sibling) (sibling as HTMLElement).style.display = "inline";
+            }}
+          />
+          <span className={styles.logoIcon} style={{ display: "none" }}>⚡</span>
           <span className={styles.logoText}>
             Next<span className={styles.logoHighlight}>Talent</span>
           </span>

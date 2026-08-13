@@ -31,6 +31,13 @@
   color: white;
 }
 
+.logoImage {
+  height: 24px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+
 .logoIcon {
   font-size: 1.25rem;
 }

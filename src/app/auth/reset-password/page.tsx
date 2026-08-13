@@ -83,7 +83,17 @@ export default function ResetPasswordPage(): React.JSX.Element {
       <div className={styles.authCard}>
         <div className={styles.authHeader}>
           <Link href="/" className={styles.authLogo}>
-            <span className={styles.authLogoIcon}>⚡</span>
+            <img
+              src="/nexttalent-logo/nexttalent-logo-only-dark.png"
+              alt="NextTalent"
+              className={styles.authLogoImage}
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+                const sibling = e.currentTarget.nextElementSibling;
+                if (sibling) (sibling as HTMLElement).style.display = "inline";
+              }}
+            />
+            <span className={styles.authLogoIcon} style={{ display: "none" }}>⚡</span>
             <span className={styles.authLogoText}>
               Next<span className={styles.authLogoHighlight}>Talent</span>
             </span>
