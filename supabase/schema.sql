@@ -1,5 +1,5 @@
 -- =====================================================================
--- NextGen Talent Matrix - Database Schema (Supabase / PostgreSQL)
+-- NextTalent - Database Schema (Supabase / PostgreSQL)
 -- =====================================================================
 
 -- Table 1: Voice Roadmap Sessions

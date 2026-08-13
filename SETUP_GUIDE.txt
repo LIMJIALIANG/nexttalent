@@ -1,8 +1,6 @@
 ================================================================================
-  NEXTGEN TALENT MATRIX — COMPLETE SETUP GUIDE
+  NEXTTALENT — COMPLETE SETUP GUIDE
   Voice-Activated Future Talent Ecosystem
-  URIIS Student Biz Innov Challenge 2026
-  Problem Statement #3: AI for Employment & Skills
 ================================================================================
 
 TABLE OF CONTENTS
@@ -37,7 +35,7 @@ To check your versions:
 2. PROJECT STRUCTURE
 ================================================================================
 
-nextgen-talent-matrix/
+nexttalent/
 ├── .env.example            ← Copy this to .env.local
 ├── .env.local              ← YOUR secret keys (create this!)
 ├── package.json
@@ -143,7 +141,7 @@ If you DO want to set it up:
   1. Go to: https://supabase.com
   2. Sign up / Log in
   3. Click "New Project"
-  4. Pick a name (e.g., "nextgen-talent"), set a password, pick a region
+  4. Pick a name (e.g., "nexttalent"), set a password, pick a region
   5. Wait for the project to be created
 
   STEP B — Get Your Keys
@@ -204,7 +202,7 @@ If you DO want to set it up:
      b. Create a new project (or select your existing one)
      c. Click "Create Credentials" → "OAuth client ID"
      d. Application type: "Web application"
-     e. Name: "NextGen Talent Matrix"
+     e. Name: "NextTalent"
      f. Authorized redirect URIs — add BOTH of these:
           http://localhost:3000/auth/callback          (for local dev)
           https://YOUR-PROJECT-REF.supabase.co/auth/v1/callback
@@ -217,13 +215,13 @@ If you DO want to set it up:
      b. Find "Google" in the list and click to expand
      c. Toggle "Enable Sign in with Google" to ON
      d. Paste your Google Client ID
-     e. Paste your Google Client Secret
+     d. Paste your Google Client Secret
      f. Click "Save"
 
   3. Configure OAuth Consent Screen (if prompted):
      a. In Google Cloud Console → APIs & Services → OAuth consent screen
      b. User type: "External"
-     c. Fill in app name: "NextGen Talent Matrix"
+     c. Fill in app name: "NextTalent"
      d. Fill in support email (your email)
      e. Add scopes: email, profile, openid
      f. Add test users (your email) if in "Testing" mode
@@ -269,7 +267,7 @@ If you DO want to set it up:
   ─────────────────────────────────
     > git init
     > git add .
-    > git commit -m "Initial commit: NextGen Talent Matrix"
+    > git commit -m "Initial commit: NextTalent"
     > git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
     > git push -u origin main
 
@@ -393,5 +391,5 @@ If you DO want to set it up:
   END OF SETUP GUIDE
   
   For any questions, email: support@kolaxus.net
-  #URIIS2026 | NextGen Talent Matrix
+  NextTalent
 ================================================================================

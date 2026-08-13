@@ -53,7 +53,7 @@ function AuthContent(): React.JSX.Element {
             <Link href="/" className={styles.authLogo}>
               <span className={styles.authLogoIcon}>⚡</span>
               <span className={styles.authLogoText}>
-                NextGen<span className={styles.authLogoHighlight}>Talent</span>
+                Next<span className={styles.authLogoHighlight}>Talent</span>
               </span>
             </Link>
             <h1 className={styles.authTitle}>Authentication</h1>
@@ -190,7 +190,7 @@ function AuthContent(): React.JSX.Element {
           <Link href="/" className={styles.authLogo}>
             <span className={styles.authLogoIcon}>⚡</span>
             <span className={styles.authLogoText}>
-              NextGen<span className={styles.authLogoHighlight}>Talent</span>
+              Next<span className={styles.authLogoHighlight}>Talent</span>
             </span>
           </Link>
           <h1 className={styles.authTitle}>
@@ -199,7 +199,7 @@ function AuthContent(): React.JSX.Element {
           <p className={styles.authSubtitle}>
             {mode === "login"
               ? "Sign in to access your career ecosystem"
-              : "Join the NextGen Talent platform"}
+              : "Join the NextTalent platform"}
           </p>
         </div>
 

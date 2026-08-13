@@ -3,11 +3,11 @@ import { ReactNode } from "react";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "NextGen Talent Matrix | Voice-Activated Career Ecosystem",
+  title: "NextTalent | Voice-Activated Career Ecosystem",
   description:
-    "AI-powered career guidance platform featuring voice-to-roadmap generation, skill gap analysis, micro-learning recommendations, and workforce analytics. Built for the URIIS Student Biz Innov Challenge 2026.",
+    "AI-powered career guidance platform featuring voice-to-roadmap generation, skill gap analysis, micro-learning recommendations, and workforce analytics.",
   keywords:
-    "career guidance, AI, voice assistant, skill gap, Malaysia, URIIS, talent ecosystem",
+    "career guidance, AI, voice assistant, skill gap, talent ecosystem",
 };
 
 interface RootLayoutProps {

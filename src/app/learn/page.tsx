@@ -79,7 +79,7 @@ function LearnContent(): React.JSX.Element {
   });
 
   const getSeenCoursesCacheKey = (uid: string | null): string => {
-    return uid ? `nextgen_seen_courses_${uid}` : "nextgen_seen_courses_guest";
+    return uid ? `nexttalent_seen_courses_${uid}` : "nexttalent_seen_courses_guest";
   };
 
   const filterCoursesByTimeframe = useCallback(

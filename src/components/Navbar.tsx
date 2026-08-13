@@ -120,7 +120,7 @@ export default function Navbar(): React.JSX.Element {
         <Link href="/" className={styles.logo}>
           <span className={styles.logoIcon}>⚡</span>
           <span className={styles.logoText}>
-            NextGen<span className={styles.logoHighlight}>Talent</span>
+            Next<span className={styles.logoHighlight}>Talent</span>
           </span>
         </Link>
 

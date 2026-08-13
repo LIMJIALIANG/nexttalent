@@ -68,7 +68,7 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
 
   // Helper to get storage key per user
   const getStorageKey = (uid: string | null): string => {
-    return uid ? `nextgen_saved_roadmaps_${uid}` : "nextgen_saved_roadmaps_guest";
+    return uid ? `nexttalent_saved_roadmaps_${uid}` : "nexttalent_saved_roadmaps_guest";
   };
 
   // Fetch saved roadmaps strictly isolated per user
@@ -78,7 +78,7 @@ export default function VoiceRoadmapPage(): React.JSX.Element {
 
     // Remove legacy unpartitioned storage key if present
     try {
-      localStorage.removeItem("nextgen_saved_roadmaps");
+      localStorage.removeItem("nexttalent_saved_roadmaps");
     } catch {
       // ignore
     }

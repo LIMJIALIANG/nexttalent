@@ -134,16 +134,16 @@ function SkillAnalyzerContent(): React.JSX.Element {
     currentSnapshot !== analysisSnapshotRef.current;
 
   const getStorageKey = (uid: string | null): string => {
-    return uid ? `nextgen_saved_roadmaps_${uid}` : "nextgen_saved_roadmaps_guest";
+    return uid ? `nexttalent_saved_roadmaps_${uid}` : "nexttalent_saved_roadmaps_guest";
   };
 
   const getResumeCacheKey = (uid: string | null): string => {
-    return uid ? `nextgen_cached_resume_${uid}` : "nextgen_cached_resume_guest";
+    return uid ? `nexttalent_cached_resume_${uid}` : "nexttalent_cached_resume_guest";
   };
 
   const getAnalysisCacheKey = (uid: string | null, career?: string): string => {
     const careerSuffix = career ? `_${career.toLowerCase().replace(/[^a-z0-9]/g, "_")}` : "";
-    return uid ? `nextgen_cached_analysis_${uid}${careerSuffix}` : `nextgen_cached_analysis_guest${careerSuffix}`;
+    return uid ? `nexttalent_cached_analysis_${uid}${careerSuffix}` : `nexttalent_cached_analysis_guest${careerSuffix}`;
   };
 
   const formatFileSize = (bytes?: number | null): string => {

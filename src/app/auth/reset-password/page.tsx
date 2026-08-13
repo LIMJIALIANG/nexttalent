@@ -85,7 +85,7 @@ export default function ResetPasswordPage(): React.JSX.Element {
           <Link href="/" className={styles.authLogo}>
             <span className={styles.authLogoIcon}>⚡</span>
             <span className={styles.authLogoText}>
-              NextGen<span className={styles.authLogoHighlight}>Talent</span>
+              Next<span className={styles.authLogoHighlight}>Talent</span>
             </span>
           </Link>
           <h1 className={styles.authTitle}>New Password</h1>
