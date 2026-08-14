@@ -28,10 +28,10 @@ export async function generateGeminiContent(prompt: string): Promise<string> {
 
   // 2. Default fallback hierarchy
   const defaultModels = [
+    "gemini-3.1-flash-lite",
     "gemini-2.0-flash",
     "gemini-1.5-flash",
     "gemini-2.5-flash",
-    "gemini-3.1-flash-lite", // Explicit support for gemini-3.1-flash-lite or similar models
   ];
 
   for (const model of defaultModels) {

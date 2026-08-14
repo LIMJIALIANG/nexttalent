@@ -60,7 +60,7 @@ const MODULES: ModuleInfo[] = [
 
 const STATS: StatInfo[] = [
   { value: "30s", label: "Average Roadmap Time" },
-  { value: "AI", label: "Gemini 2.5 Flash" },
+  { value: "AI", label: "Gemini 3.1 Flash-Lite" },
   { value: "25+", label: "Courses Database" },
   { value: "4", label: "Core Features" },
 ];
@@ -99,11 +99,9 @@ export default function HomePage(): React.JSX.Element {
             </Link>
           </div>
           <div className={styles.heroTech}>
-            <span>Built with:</span>
-            <span className={styles.techTag}>Web Speech API</span>
-            <span className={styles.techTag}>Gemini AI</span>
-            <span className={styles.techTag}>Next.js</span>
-            <span className={styles.techTag}>Supabase</span>
+            <span className={styles.techTag}>Career clarity in one voice prompt</span>
+            <span className={styles.techTag}>Voiced Roadmap</span>
+            <span className={styles.techTag}>Skill mapping, simplified</span>
           </div>
         </div>
       </section>
