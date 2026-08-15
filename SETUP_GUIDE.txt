@@ -215,10 +215,21 @@ If you DO want to set it up:
      b. Find "Google" in the list and click to expand
      c. Toggle "Enable Sign in with Google" to ON
      d. Paste your Google Client ID
-     d. Paste your Google Client Secret
+     e. Paste your Google Client Secret
      f. Click "Save"
 
-  3. Configure OAuth Consent Screen (if prompted):
+  3. Configure Supabase Whitelist Redirects for Vercel (CRITICAL FOR DEPLOYMENT):
+     Since the app dynamically requests login redirects back to your active
+     domain, Supabase will reject redirects to Vercel unless whitelisted:
+     a. Go to your Supabase Dashboard → Authentication → URL Configuration
+     b. Under "Site URL", update it to your production URL:
+          https://your-project-name.vercel.app
+     c. Under "Redirect URLs" (Additional Redirect URLs), click "Add URL" and add:
+          https://your-project-name.vercel.app/**
+        (The "**" wildcard allows matching all subdirectory callbacks)
+     d. Click "Save"
+
+  4. Configure OAuth Consent Screen (if prompted):
      a. In Google Cloud Console → APIs & Services → OAuth consent screen
      b. User type: "External"
      c. Fill in app name: "NextTalent"
