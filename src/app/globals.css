@@ -552,6 +552,10 @@ button {
 }
 
 /* Buttons */
+[data-theme="light"] .btn-primary {
+  color: #ffffff !important;
+}
+
 [data-theme="light"] .btn-secondary {
   color: var(--primary-600);
   border-color: var(--primary-500);
