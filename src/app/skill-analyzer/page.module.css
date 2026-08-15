@@ -46,7 +46,7 @@
 
 /* ===== Analyzer Section ===== */
 .analyzerSection {
-  padding: var(--space-12) 0;
+  padding: var(--space-12) 0 0;
 }
 
 .contextCard {
@@ -1087,7 +1087,7 @@
 
 /* ===== Results ===== */
 .results {
-  padding: var(--space-8) 0 var(--space-12);
+  padding: var(--space-2) 0 var(--space-12);
 }
 
 /* ===== Match Card ===== */
