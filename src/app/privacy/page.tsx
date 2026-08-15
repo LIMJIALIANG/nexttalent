@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import styles from "./page.module.css";
@@ -12,6 +13,23 @@ export default function PrivacyPage(): React.JSX.Element {
       <main className={styles.pageWrapper}>
         <div className={styles.pageGlow} />
         <div className={styles.container}>
+          <Link href="/" className={styles.backButton}>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={styles.backIcon}
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+            <span>Back to Home</span>
+          </Link>
+
           <div className={styles.header}>
             <h1 className={styles.title}>Privacy Policy</h1>
             <p className={styles.subtitle}>Last updated: August 15, 2026</p>

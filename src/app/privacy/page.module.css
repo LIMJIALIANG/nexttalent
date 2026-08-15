@@ -24,7 +24,7 @@
 }
 
 .container {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   position: relative;
   z-index: 1;
@@ -125,3 +125,49 @@
 :global([data-theme="light"]) .textBlock li {
   color: var(--gray-700);
 }
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  color: var(--gray-300);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: var(--space-8);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.backIcon {
+  transition: transform var(--transition-fast);
+}
+
+.backButton:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: var(--accent-300);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.backButton:hover .backIcon {
+  transform: translateX(-3px);
+}
+
+:global([data-theme="light"]) .backButton {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: var(--gray-200);
+  color: var(--gray-700);
+}
+
+:global([data-theme="light"]) .backButton:hover {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: var(--gray-300);
+  color: var(--primary-600);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
