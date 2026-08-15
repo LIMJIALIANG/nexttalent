@@ -156,6 +156,7 @@ function AuthContent(): React.JSX.Element {
         email: email.trim(),
         password: password.trim(),
         options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             first_name: firstName.trim(),
             last_name: lastName.trim(),
