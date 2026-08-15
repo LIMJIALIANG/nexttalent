@@ -1,0 +1,127 @@
+.pageWrapper {
+  min-height: 100vh;
+  padding: var(--space-24) var(--space-6) var(--space-16);
+  background: var(--gradient-hero);
+  position: relative;
+  overflow: hidden;
+}
+
+.pageGlow {
+  position: absolute;
+  top: -10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(
+    circle,
+    rgba(0, 212, 160, 0.06) 0%,
+    rgba(13, 139, 217, 0.04) 40%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: var(--space-10);
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-3);
+  color: white;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: var(--gray-400);
+}
+
+.contentCard {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8) var(--space-10);
+  box-shadow: var(--glass-shadow);
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.textBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.textBlock h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: white;
+  margin-top: var(--space-4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: var(--space-2);
+}
+
+.textBlock p {
+  color: var(--gray-300);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.textBlock ul {
+  margin-left: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.textBlock li {
+  color: var(--gray-300);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .contentCard {
+    padding: var(--space-6) var(--space-6);
+  }
+}
+
+/* ===== LIGHT THEME OVERRIDES ===== */
+:global([data-theme="light"]) .title {
+  color: var(--gray-900);
+}
+
+:global([data-theme="light"]) .subtitle {
+  color: var(--gray-600);
+}
+
+:global([data-theme="light"]) .contentCard {
+  background: #ffffff;
+  border-color: var(--gray-200);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+:global([data-theme="light"]) .textBlock h2 {
+  color: var(--gray-900);
+  border-bottom-color: var(--gray-200);
+}
+
+:global([data-theme="light"]) .textBlock p {
+  color: var(--gray-700);
+}
+
+:global([data-theme="light"]) .textBlock li {
+  color: var(--gray-700);
+}

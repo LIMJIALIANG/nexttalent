@@ -54,16 +54,25 @@ export default function Footer(): React.JSX.Element {
           <div className={styles.footerCol}>
             <h4 className={styles.colTitle}>Contact</h4>
             <a
-              href="mailto:support@kolaxus.net"
+              href="mailto:onlytheone1092@gmail.com"
               className={styles.footerLink}
             >
-              support@kolaxus.net
+              onlytheone1092@gmail.com
             </a>
           </div>
         </div>
 
         <div className={styles.footerBottom}>
           <p>© 2026 NextTalent. All Rights Reserved.</p>
+          <div className={styles.footerBottomLinks}>
+            <Link href="/privacy" className={styles.footerBottomLink}>
+              Privacy Policy
+            </Link>
+            <span className={styles.divider}>•</span>
+            <Link href="/terms" className={styles.footerBottomLink}>
+              Terms of Use
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
