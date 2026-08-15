@@ -613,4 +613,33 @@
   color: var(--gray-700);
 }
 
+:global([data-theme="light"]) .timelineContent {
+  background: #ffffff;
+  border-color: var(--gray-200);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+:global([data-theme="light"]) .timelineHeader h3 {
+  color: var(--gray-900);
+}
+
+:global([data-theme="light"]) .timelineContent p {
+  color: var(--gray-700);
+}
+
+:global([data-theme="light"]) .nextStepCard {
+  background: #ffffff;
+  border-color: rgba(0, 212, 160, 0.35);
+  box-shadow: 0 10px 30px rgba(0, 212, 160, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+:global([data-theme="light"]) .nextStepCard h3 {
+  color: var(--gray-900);
+}
+
+:global([data-theme="light"]) .nextStepCard p {
+  color: var(--gray-700);
+}
+
+
 
