@@ -263,27 +263,79 @@ If you DO want to set it up:
 7. DEPLOYING TO VERCEL (FOR LIVE DEMO URL)
 ================================================================================
 
-  Step 1: Push your code to GitHub
-  ─────────────────────────────────
-    > git init
-    > git add .
-    > git commit -m "Initial commit: NextTalent"
-    > git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
-    > git push -u origin main
+Deploying your NextTalent application to Vercel is straightforward. You can
+choose between two primary deployment methods:
 
-  Step 2: Deploy to Vercel
-  ─────────────────────────
-    1. Go to: https://vercel.com
-    2. Sign up with GitHub
-    3. Click "Import Project" → Select your repo
-    4. In the "Environment Variables" section, add:
-         GEMINI_API_KEY = your_key_here
-         NEXT_PUBLIC_SUPABASE_URL = your_url (if using Supabase)
-         NEXT_PUBLIC_SUPABASE_ANON_KEY = your_key (if using Supabase)
-    5. Click "Deploy"
-    6. Your live URL will be: https://your-project-name.vercel.app
+METHOD A: DEPLOYING VIA VERCEL DASHBOARD (RECOMMENDED)
+──────────────────────────────────────────────────────
+  Step 1: Push your code to GitHub / GitLab / Bitbucket
+    1. Initialize your local Git repository (if not already done):
+         > git init
+    2. Add files and commit:
+         > git add .
+         > git commit -m "Deploying NextTalent to Vercel"
+    3. Create a repository on GitHub (e.g., "nexttalent")
+    4. Link your local repo to GitHub and push:
+         > git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
+         > git branch -M main
+         > git push -u origin main
 
-  ⚡ Vercel automatically rebuilds when you push to GitHub!
+  Step 2: Connect GitHub Repo to Vercel
+    1. Go to: https://vercel.com and sign up using your GitHub account.
+    2. Click "Add New..." → "Project".
+    3. Find your "nexttalent" repository in the list and click "Import".
+
+  Step 3: Configure Settings & Environment Variables
+    1. In the "Configure Project" screen, leave the Build & Development Settings
+       at their default values (Vercel automatically detects Next.js).
+    2. Expand the "Environment Variables" section.
+    3. Add the following keys and values (copy them from your local .env.local):
+       
+         • GEMINI_API_KEY = (your actual Gemini API key)
+         • NEXT_PUBLIC_SUPABASE_URL = (your URL, if using Supabase)
+         • NEXT_PUBLIC_SUPABASE_ANON_KEY = (your key, if using Supabase)
+
+  Step 4: Deploy!
+    1. Click the "Deploy" button.
+    2. Vercel will build and deploy your project (usually takes ~1-2 minutes).
+    3. Once complete, you will receive a preview screenshot and your live URLs
+       (e.g., https://nexttalent-omega.vercel.app).
+
+  ⚡ Vercel automatically deploys updates whenever you push code to GitHub!
+
+
+METHOD B: DEPLOYING VIA VERCEL CLI (COMMAND LINE)
+──────────────────────────────────────────────────
+If you prefer deploying directly from your terminal:
+
+  Step 1: Install the Vercel CLI globally
+    > npm install -g vercel
+
+  Step 2: Log in to your Vercel account
+    > vercel login
+    (Follow the prompt in your browser to authenticate)
+
+  Step 3: Run the deploy command in your project directory
+    > vercel
+
+  Step 4: Answer the setup prompts
+    • Set up and deploy "./nexttalent"? [y/n] → y
+    • Which scope do you want to deploy to? → (Select your account)
+    • Link to existing project? [y/n] → n
+    • What's your project's name? → nexttalent
+    • In which directory is your code located? → ./
+    • Want to modify build settings? [y/n] → n
+
+  Step 5: Add your environment variables via CLI
+    Use the `vercel env add` command to set up Gemini and Supabase:
+    > vercel env add GEMINI_API_KEY production
+    > vercel env add NEXT_PUBLIC_SUPABASE_URL production
+    > vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY production
+
+  Step 6: Deploy to production
+    > vercel --prod
+
+  Your application will be live at the production URL provided by the CLI!
 
 ================================================================================
 8. HOW THE 4 MODULES WORK
