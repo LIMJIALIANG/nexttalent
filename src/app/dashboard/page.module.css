@@ -83,7 +83,7 @@
 
 /* ===== KPI Section ===== */
 .kpiSection {
-  padding: var(--space-12) 0 var(--space-3);
+  padding: var(--space-4) 0 var(--space-3);
 }
 
 .kpiGrid {

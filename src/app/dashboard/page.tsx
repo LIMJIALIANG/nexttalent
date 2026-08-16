@@ -710,31 +710,64 @@ export default function DashboardPage(): React.JSX.Element {
                     </h2>
                   </div>
                   <div className={styles.insightsGrid}>
+                    {/* Insight 1: Peak Career Interest */}
                     <div className={styles.insightCard}>
-                      <div className={styles.insightIcon}>🤖</div>
-                      <h4>AI & Tech Demand Surge</h4>
+                      <div className={styles.insightIcon}>🔥</div>
+                      <h4>Peak Career Interest</h4>
                       <p>
-                        AI/ML Engineer and Data Scientist are the top 2 searched
-                        careers, indicating massive student interest in AI-related
-                        fields. Universities should expand AI curriculum.
+                        {analytics.topCareers && analytics.topCareers.length > 0 ? (
+                          <>
+                            The primary career path under exploration is{" "}
+                            <strong>{analytics.topCareers[0].career}</strong> (
+                            {analytics.topCareers[0].count} sessions)
+                            {analytics.topCareers[1] ? (
+                              <>
+                                , followed closely by{" "}
+                                <strong>{analytics.topCareers[1].career}</strong> (
+                                {analytics.topCareers[1].count} sessions)
+                              </>
+                            ) : (
+                              ""
+                            )}
+                            . Educational institutions should consider expanding
+                            curriculum pathways in these high-interest sectors.
+                          </>
+                        ) : (
+                          "No career exploration data is available yet to draw insights."
+                        )}
                       </p>
                     </div>
+
+                    {/* Insight 2: Critical Skill Shortage */}
                     <div className={styles.insightCard}>
-                      <div className={styles.insightIcon}>🐍</div>
-                      <h4>Python is #1 Gap</h4>
+                      <div className={styles.insightIcon}>⚠️</div>
+                      <h4>Critical Skill Shortage</h4>
                       <p>
-                        Python is the most common missing skill across all analyses.
-                        This suggests a critical need for Python programming courses
-                        in university curricula nationwide.
+                        {analytics.topMissingSkills &&
+                        analytics.topMissingSkills.length > 0 ? (
+                          <>
+                            <strong>{analytics.topMissingSkills[0].skill}</strong> has
+                            emerged as the most critical national skill gap, flagged
+                            in {analytics.topMissingSkills[0].count} separate student
+                            evaluations. Targeted technical courses or industry
+                            bootcamps are highly recommended.
+                          </>
+                        ) : (
+                          "No skill gap data is available yet to evaluate shortage insights."
+                        )}
                       </p>
                     </div>
+
+                    {/* Insight 3: Industry Readiness Gap */}
                     <div className={styles.insightCard}>
                       <div className={styles.insightIcon}>📉</div>
-                      <h4>58% Average Match</h4>
+                      <h4>Industry Readiness Gap</h4>
                       <p>
-                        Students average only 58% skill match with their target
-                        careers, highlighting a significant education-industry gap
-                        that needs policy intervention.
+                        With an average alignment match of only{" "}
+                        <strong>{analytics.averageMatchPercentage}%</strong> across
+                        all analyzed student profiles, there is a prominent
+                        education-mismatch between university output and industry
+                        needs that requires policy intervention.
                       </p>
                     </div>
                   </div>
