@@ -5,6 +5,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { AnalyticsData } from "@/types";
+import ConfirmModal from "@/components/ConfirmModal";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import styles from "./page.module.css";
 
@@ -26,6 +27,10 @@ export default function DashboardPage(): React.JSX.Element {
   const [adminActionLoading, setAdminActionLoading] = useState<boolean>(false);
   const [adminError, setAdminError] = useState<string>("");
   const [adminSuccess, setAdminSuccess] = useState<string>("");
+
+  // ConfirmModal states
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState<boolean>(false);
+  const [adminToRevoke, setAdminToRevoke] = useState<string>("");
 
   const barChartRef = useRef<HTMLCanvasElement | null>(null);
   const doughnutChartRef = useRef<HTMLCanvasElement | null>(null);
@@ -341,9 +346,13 @@ export default function DashboardPage(): React.JSX.Element {
     }
   };
 
+  const triggerRevokeConfirmation = (email: string) => {
+    setAdminToRevoke(email);
+    setIsConfirmModalOpen(true);
+  };
+
   const handleRemoveAdmin = async (emailToRemove: string): Promise<void> => {
     if (emailToRemove === "onlytheone1092@gmail.com") return;
-    if (!confirm(`Are you sure you want to revoke admin permissions for ${emailToRemove}?`)) return;
 
     setAdminActionLoading(true);
     setAdminError("");
@@ -364,6 +373,7 @@ export default function DashboardPage(): React.JSX.Element {
       setAdminError("Network error. Failed to revoke permissions.");
     } finally {
       setAdminActionLoading(false);
+      setIsConfirmModalOpen(false);
     }
   };
 
@@ -800,14 +810,30 @@ export default function DashboardPage(): React.JSX.Element {
                         <td>
                           {emailAddress !== "onlytheone1092@gmail.com" ? (
                             <button
-                              onClick={() => handleRemoveAdmin(emailAddress)}
-                              className={styles.revokeBtn}
+                              onClick={() => triggerRevokeConfirmation(emailAddress)}
+                              className="badge badge-danger"
+                              style={{
+                                cursor: "pointer",
+                                transition: "all 0.2s",
+                                display: "inline-flex",
+                                fontFamily: "inherit"
+                              }}
                               disabled={adminActionLoading}
                             >
                               Revoke Access
                             </button>
                           ) : (
-                            <span className={styles.systemProtectedLabel}>Protected</span>
+                            <span
+                              className="badge"
+                              style={{
+                                opacity: 0.5,
+                                border: "1px dashed var(--gray-500)",
+                                color: "var(--gray-500)",
+                                display: "inline-flex"
+                              }}
+                            >
+                              Protected
+                            </span>
                           )}
                         </td>
                       </tr>
@@ -819,6 +845,20 @@ export default function DashboardPage(): React.JSX.Element {
           </div>
         </section>
       )}
+
+      <ConfirmModal
+        isOpen={isConfirmModalOpen}
+        title="Revoke Admin Access"
+        message="Are you sure you want to revoke administrator access for this user? They will no longer be able to view or manage the workforce analytics dashboard."
+        itemName={adminToRevoke}
+        itemIcon="👥"
+        confirmLabel="Revoke Access"
+        cancelLabel="Cancel"
+        variant="danger"
+        isLoading={adminActionLoading}
+        onConfirm={() => handleRemoveAdmin(adminToRevoke)}
+        onCancel={() => setIsConfirmModalOpen(false)}
+      />
 
       <Footer />
     </>
