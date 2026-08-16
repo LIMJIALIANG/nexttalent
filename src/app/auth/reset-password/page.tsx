@@ -37,8 +37,8 @@ export default function ResetPasswordPage(): React.JSX.Element {
       return;
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
       return;
     }
 
@@ -115,7 +115,7 @@ export default function ResetPasswordPage(): React.JSX.Element {
               className={styles.formInput}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Min. 6 characters"
+              placeholder="Min. 8 characters"
               required
             />
           </div>

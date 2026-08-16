@@ -418,7 +418,34 @@ If you prefer deploying directly from your terminal:
   → Make sure the tables exist (see Section 5)
 
 ================================================================================
-10. TECH STACK SUMMARY
+10. CUSTOM SMTP & PREMIUM EMAIL TEMPLATES
+================================================================================
+
+  Supabase Free Tier accounts using the default built-in SMTP provider will
+  have custom HTML templates disabled (or restricted to plain text) as part 
+  of their policy to prevent spam.
+
+  To restore, customize, and stylize your signup verification and password
+  reset emails, follow the SMTP setup guide. A step-by-step walkthrough is
+  available locally:
+  
+  📁 File: custom_supabase_emails.md
+  
+  Summary of SMTP Configuration (using Resend Free Tier):
+  1. Create a free account at https://resend.com
+  2. Generate an API Key
+  3. In Supabase Dashboard → Settings → Authentication → Custom SMTP:
+     • Enable Custom SMTP: ON
+     • Host: smtp.resend.com
+     • Port: 465 (SSL)
+     • Username: resend
+     • Password: <your_resend_api_key>
+     • Sender Address: onboarding@resend.dev (or your verified domain email)
+  4. Paste the custom HTML templates from the guide file into the respective
+     email templates in your Supabase Auth settings.
+
+================================================================================
+11. TECH STACK SUMMARY
 ================================================================================
 
   FRONTEND:

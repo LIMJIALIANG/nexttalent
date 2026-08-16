@@ -380,4 +380,12 @@
   }
 }
 
+:global([data-theme="light"]) .loginBtn {
+  color: #ffffff !important;
+}
+
+:global([data-theme="light"]) .loginBtn:hover {
+  color: #ffffff !important;
+}
+
 

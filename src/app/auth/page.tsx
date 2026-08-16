@@ -142,8 +142,8 @@ function AuthContent(): React.JSX.Element {
       return;
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
       return;
     }
 
@@ -365,7 +365,7 @@ function AuthContent(): React.JSX.Element {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={
-                mode === "register" ? "Min. 6 characters" : "Enter your password"
+                mode === "register" ? "Min. 8 characters" : "Enter your password"
               }
               required
               autoComplete={
