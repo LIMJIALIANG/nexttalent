@@ -450,13 +450,16 @@ export default function DashboardPage(): React.JSX.Element {
   }, [supabase]);
 
   useEffect(() => {
-    if (analytics) {
-      loadCharts();
+    if (analytics && activeTab === "analytics") {
+      const timer = setTimeout(() => {
+        loadCharts();
+      }, 50);
+      return () => {
+        clearTimeout(timer);
+        destroyCharts();
+      };
     }
-    return () => {
-      destroyCharts();
-    };
-  }, [analytics]);
+  }, [analytics, activeTab]);
 
   if (checkingAuth || isLoading) {
     return (
@@ -551,8 +554,7 @@ export default function DashboardPage(): React.JSX.Element {
         </div>
       </div>
 
-      {activeTab === "analytics" && (
-        <>
+      <div style={{ display: activeTab === "analytics" ? "block" : "none" }}>
           {error && (
             <div className="container">
               <div className={styles.errorMsg}>
@@ -740,10 +742,9 @@ export default function DashboardPage(): React.JSX.Element {
               </section>
             </>
           )}
-        </>
-      )}
+      </div>
 
-      {activeTab === "admins" && (
+      <div style={{ display: activeTab === "admins" ? "block" : "none" }}>
         <section className={styles.adminManagementSection}>
           <div className="container">
             <div className={styles.adminCard}>
@@ -844,7 +845,7 @@ export default function DashboardPage(): React.JSX.Element {
             </div>
           </div>
         </section>
-      )}
+      </div>
 
       <ConfirmModal
         isOpen={isConfirmModalOpen}
