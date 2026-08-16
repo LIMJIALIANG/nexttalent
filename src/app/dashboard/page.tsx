@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { AnalyticsData } from "@/types";
+import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import styles from "./page.module.css";
 
 // We use Chart.js via dynamic import to avoid SSR issues
@@ -14,6 +16,16 @@ export default function DashboardPage(): React.JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isLiveData, setIsLiveData] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [isAdmin, setIsAdmin] = useState<boolean>(true);
+  const [checkingAuth, setCheckingAuth] = useState<boolean>(true);
+
+  // Admin access management states
+  const [activeTab, setActiveTab] = useState<"analytics" | "admins">("analytics");
+  const [adminsList, setAdminsList] = useState<string[]>([]);
+  const [newAdminEmail, setNewAdminEmail] = useState<string>("");
+  const [adminActionLoading, setAdminActionLoading] = useState<boolean>(false);
+  const [adminError, setAdminError] = useState<string>("");
+  const [adminSuccess, setAdminSuccess] = useState<string>("");
 
   const barChartRef = useRef<HTMLCanvasElement | null>(null);
   const doughnutChartRef = useRef<HTMLCanvasElement | null>(null);
@@ -288,9 +300,144 @@ export default function DashboardPage(): React.JSX.Element {
     }
   };
 
+  const fetchAdminsList = async (): Promise<void> => {
+    try {
+      const response = await fetch("/api/admins");
+      const resData = await response.json();
+      if (resData.success) {
+        setAdminsList(resData.data);
+      }
+    } catch {
+      setAdminError("Failed to fetch admin list.");
+    }
+  };
+
+  const handleAddAdmin = async (e: React.FormEvent): Promise<void> => {
+    e.preventDefault();
+    if (!newAdminEmail.trim()) return;
+
+    setAdminActionLoading(true);
+    setAdminError("");
+    setAdminSuccess("");
+
+    try {
+      const response = await fetch("/api/admins", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: newAdminEmail.trim() }),
+      });
+      const resData = await response.json();
+      if (resData.success) {
+        setAdminSuccess(`Successfully added ${newAdminEmail.trim()} as administrator.`);
+        setNewAdminEmail("");
+        fetchAdminsList();
+      } else {
+        setAdminError(resData.error || "Failed to add administrator.");
+      }
+    } catch {
+      setAdminError("Network error. Failed to add administrator.");
+    } finally {
+      setAdminActionLoading(false);
+    }
+  };
+
+  const handleRemoveAdmin = async (emailToRemove: string): Promise<void> => {
+    if (emailToRemove === "onlytheone1092@gmail.com") return;
+    if (!confirm(`Are you sure you want to revoke admin permissions for ${emailToRemove}?`)) return;
+
+    setAdminActionLoading(true);
+    setAdminError("");
+    setAdminSuccess("");
+
+    try {
+      const response = await fetch(`/api/admins?email=${encodeURIComponent(emailToRemove)}`, {
+        method: "DELETE",
+      });
+      const resData = await response.json();
+      if (resData.success) {
+        setAdminSuccess(`Successfully revoked administrator access for ${emailToRemove}.`);
+        fetchAdminsList();
+      } else {
+        setAdminError(resData.error || "Failed to revoke permissions.");
+      }
+    } catch {
+      setAdminError("Network error. Failed to revoke permissions.");
+    } finally {
+      setAdminActionLoading(false);
+    }
+  };
+
+  const supabase = getSupabaseBrowserClient();
+
   useEffect(() => {
-    fetchAnalytics();
-  }, []);
+    if (!supabase) {
+      setIsAdmin(true);
+      setCheckingAuth(false);
+      fetchAnalytics();
+      fetchAdminsList();
+      return;
+    }
+
+    const checkSession = async (session: any) => {
+      const email = session?.user?.email?.toLowerCase();
+      if (!email) {
+        setIsAdmin(false);
+        setIsLoading(false);
+        setCheckingAuth(false);
+        return;
+      }
+
+      // Super admin bypass
+      if (email === "onlytheone1092@gmail.com") {
+        setIsAdmin(true);
+        fetchAnalytics();
+        fetchAdminsList();
+        setCheckingAuth(false);
+        return;
+      }
+
+      // Check remote API list
+      try {
+        const response = await fetch("/api/admins");
+        const resData = await response.json();
+        if (resData.success && Array.isArray(resData.data)) {
+          const list = resData.data.map((e: string) => e.toLowerCase());
+          if (list.includes(email)) {
+            setIsAdmin(true);
+            fetchAnalytics();
+            fetchAdminsList();
+          } else {
+            setIsAdmin(false);
+            setIsLoading(false);
+          }
+        } else {
+          setIsAdmin(false);
+          setIsLoading(false);
+        }
+      } catch {
+        setIsAdmin(false);
+        setIsLoading(false);
+      } finally {
+        setCheckingAuth(false);
+      }
+    };
+
+    // 1. Initial check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      checkSession(session);
+    });
+
+    // 2. Auth state change listener
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      checkSession(session);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
 
   useEffect(() => {
     if (analytics) {
@@ -301,14 +448,49 @@ export default function DashboardPage(): React.JSX.Element {
     };
   }, [analytics]);
 
-  if (isLoading) {
+  if (checkingAuth || isLoading) {
     return (
       <>
         <Navbar />
         <div className={styles.loadingState}>
           <div className="spinner spinner-lg" />
-          <p>Loading analytics dashboard...</p>
+          <p>
+            {checkingAuth
+              ? "Verifying authorization..."
+              : "Loading analytics dashboard..."}
+          </p>
         </div>
+      </>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <>
+        <Navbar />
+        <div className={styles.accessDeniedContainer}>
+          <div className={styles.deniedCard}>
+            <div className={styles.deniedIcon}>🔒</div>
+            <h1 className={styles.deniedTitle}>Access Denied</h1>
+            <p className={styles.deniedText}>
+              You do not have permission to view the analytics dashboard. This area
+              is restricted to administrators only.
+            </p>
+            <div className={styles.deniedInfo}>
+              <span>Authorized Administrator:</span>
+              <strong>onlytheone1092@gmail.com</strong>
+            </div>
+            <div className={styles.deniedActions}>
+              <Link href="/" className="btn btn-secondary">
+                Go Back Home
+              </Link>
+              <Link href="/auth" className="btn btn-primary">
+                Sign In as Admin
+              </Link>
+            </div>
+          </div>
+        </div>
+        <Footer />
       </>
     );
   }
@@ -337,192 +519,305 @@ export default function DashboardPage(): React.JSX.Element {
         </div>
       </section>
 
-      {error && (
-        <div className="container">
-          <div className={styles.errorMsg}>
-            <span>⚠️</span> {error}
-          </div>
+      {/* Dashboard Sub Tabs */}
+      <div className="container">
+        <div className={styles.subTabContainer}>
+          <button
+            className={`${styles.subTab} ${
+              activeTab === "analytics" ? styles.subTabActive : ""
+            }`}
+            onClick={() => setActiveTab("analytics")}
+          >
+            📊 Analytics Overview
+          </button>
+          <button
+            className={`${styles.subTab} ${
+              activeTab === "admins" ? styles.subTabActive : ""
+            }`}
+            onClick={() => setActiveTab("admins")}
+          >
+            👥 Manage Admins
+          </button>
         </div>
+      </div>
+
+      {activeTab === "analytics" && (
+        <>
+          {error && (
+            <div className="container">
+              <div className={styles.errorMsg}>
+                <span>⚠️</span> {error}
+              </div>
+            </div>
+          )}
+
+          {analytics && (
+            <>
+              {/* KPI Cards */}
+              <section className={styles.kpiSection}>
+                <div className="container">
+                  <div className={styles.kpiGrid}>
+                    <div className={styles.kpiCard}>
+                      <div className={styles.kpiIcon}>🎤</div>
+                      <div className={styles.kpiValue}>
+                        {analytics.totalSessions.toLocaleString()}
+                      </div>
+                      <div className={styles.kpiLabel}>Voice Sessions</div>
+                    </div>
+                    <div className={styles.kpiCard}>
+                      <div className={styles.kpiIcon}>📊</div>
+                      <div className={styles.kpiValue}>
+                        {analytics.totalAnalyses.toLocaleString()}
+                      </div>
+                      <div className={styles.kpiLabel}>Skill Analyses</div>
+                    </div>
+                    <div className={styles.kpiCard}>
+                      <div className={styles.kpiIcon}>📈</div>
+                      <div className={styles.kpiValue}>
+                        {analytics.averageMatchPercentage}%
+                      </div>
+                      <div className={styles.kpiLabel}>Avg. Skill Match</div>
+                    </div>
+                    <div className={styles.kpiCard}>
+                      <div className={styles.kpiIcon}>🏫</div>
+                      <div className={styles.kpiValue}>
+                        {analytics.universityBreakdown.length}
+                      </div>
+                      <div className={styles.kpiLabel}>Universities</div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Charts Grid */}
+              <section className={styles.chartsSection}>
+                <div className="container">
+                  <div className={styles.chartsGrid}>
+                    {/* Top Careers */}
+                    <div className={styles.chartCard}>
+                      <h3 className={styles.chartTitle}>
+                        🔥 Most Searched Careers
+                      </h3>
+                      <p className={styles.chartDesc}>
+                        Top career paths students are exploring via voice assistant
+                      </p>
+                      <div className={styles.chartContainer}>
+                        <canvas ref={barChartRef} id="top-careers-chart" />
+                      </div>
+                    </div>
+
+                    {/* Match Distribution */}
+                    <div className={styles.chartCard}>
+                      <h3 className={styles.chartTitle}>
+                        🎯 Skill Match Distribution
+                      </h3>
+                      <p className={styles.chartDesc}>
+                        How well students match their target careers
+                      </p>
+                      <div
+                        className={styles.chartContainer}
+                        style={{ maxHeight: 320 }}
+                      >
+                        <canvas ref={doughnutChartRef} id="match-dist-chart" />
+                      </div>
+                    </div>
+
+                    {/* Missing Skills */}
+                    <div className={styles.chartCard}>
+                      <h3 className={styles.chartTitle}>
+                        ❌ Top Missing Skills Nationwide
+                      </h3>
+                      <p className={styles.chartDesc}>
+                        Most common skill gaps across all student analyses
+                      </p>
+                      <div className={styles.chartContainer}>
+                        <canvas ref={skillBarChartRef} id="missing-skills-chart" />
+                      </div>
+                    </div>
+
+                    {/* University Breakdown */}
+                    <div className={styles.chartCard}>
+                      <h3 className={styles.chartTitle}>
+                        🏫 University Breakdown
+                      </h3>
+                      <p className={styles.chartDesc}>
+                        Platform usage across Malaysian universities
+                      </p>
+                      <div className={styles.chartContainer}>
+                        <canvas ref={uniBarChartRef} id="university-chart" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Weekly Trend Table */}
+              <section className={styles.trendSection}>
+                <div className="container">
+                  <div className={styles.trendCard}>
+                    <h3 className={styles.chartTitle}>📅 Weekly Activity Trend</h3>
+                    <div className={styles.tableWrapper}>
+                      <table className={styles.trendTable}>
+                        <thead>
+                          <tr>
+                            <th>Period</th>
+                            <th>Voice Sessions</th>
+                            <th>Skill Analyses</th>
+                            <th>Conversion Rate</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {analytics.weeklyTrend.map((week) => (
+                            <tr key={week.week}>
+                              <td>{week.week}</td>
+                              <td>{week.sessions}</td>
+                              <td>{week.analyses}</td>
+                              <td>
+                                <span className="badge badge-accent">
+                                  {Math.round(
+                                    (week.analyses / week.sessions) * 100
+                                  )}
+                                  %
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Policy Insights */}
+              <section className={styles.insightsSection}>
+                <div className="container">
+                  <div className={styles.sectionHeader}>
+                    <h2 className={styles.sectionTitle}>
+                      💡 Policy <span className="text-gradient">Insights</span>
+                    </h2>
+                  </div>
+                  <div className={styles.insightsGrid}>
+                    <div className={styles.insightCard}>
+                      <div className={styles.insightIcon}>🤖</div>
+                      <h4>AI & Tech Demand Surge</h4>
+                      <p>
+                        AI/ML Engineer and Data Scientist are the top 2 searched
+                        careers, indicating massive student interest in AI-related
+                        fields. Universities should expand AI curriculum.
+                      </p>
+                    </div>
+                    <div className={styles.insightCard}>
+                      <div className={styles.insightIcon}>🐍</div>
+                      <h4>Python is #1 Gap</h4>
+                      <p>
+                        Python is the most common missing skill across all analyses.
+                        This suggests a critical need for Python programming courses
+                        in university curricula nationwide.
+                      </p>
+                    </div>
+                    <div className={styles.insightCard}>
+                      <div className={styles.insightIcon}>📉</div>
+                      <h4>58% Average Match</h4>
+                      <p>
+                        Students average only 58% skill match with their target
+                        careers, highlighting a significant education-industry gap
+                        that needs policy intervention.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </>
+          )}
+        </>
       )}
 
-      {analytics && (
-        <>
-          {/* KPI Cards */}
-          <section className={styles.kpiSection}>
-            <div className="container">
-              <div className={styles.kpiGrid}>
-                <div className={styles.kpiCard}>
-                  <div className={styles.kpiIcon}>🎤</div>
-                  <div className={styles.kpiValue}>
-                    {analytics.totalSessions.toLocaleString()}
-                  </div>
-                  <div className={styles.kpiLabel}>Voice Sessions</div>
-                </div>
-                <div className={styles.kpiCard}>
-                  <div className={styles.kpiIcon}>📊</div>
-                  <div className={styles.kpiValue}>
-                    {analytics.totalAnalyses.toLocaleString()}
-                  </div>
-                  <div className={styles.kpiLabel}>Skill Analyses</div>
-                </div>
-                <div className={styles.kpiCard}>
-                  <div className={styles.kpiIcon}>📈</div>
-                  <div className={styles.kpiValue}>
-                    {analytics.averageMatchPercentage}%
-                  </div>
-                  <div className={styles.kpiLabel}>Avg. Skill Match</div>
-                </div>
-                <div className={styles.kpiCard}>
-                  <div className={styles.kpiIcon}>🏫</div>
-                  <div className={styles.kpiValue}>
-                    {analytics.universityBreakdown.length}
-                  </div>
-                  <div className={styles.kpiLabel}>Universities</div>
-                </div>
-              </div>
-            </div>
-          </section>
+      {activeTab === "admins" && (
+        <section className={styles.adminManagementSection}>
+          <div className="container">
+            <div className={styles.adminCard}>
+              <h3 className={styles.adminCardTitle}>👥 Admin Access List</h3>
+              <p className={styles.adminCardDesc}>
+                Add or remove emails that have permission to view this Workforce Analytics Dashboard.
+              </p>
 
-          {/* Charts Grid */}
-          <section className={styles.chartsSection}>
-            <div className="container">
-              <div className={styles.chartsGrid}>
-                {/* Top Careers */}
-                <div className={styles.chartCard}>
-                  <h3 className={styles.chartTitle}>
-                    🔥 Most Searched Careers
-                  </h3>
-                  <p className={styles.chartDesc}>
-                    Top career paths students are exploring via voice assistant
-                  </p>
-                  <div className={styles.chartContainer}>
-                    <canvas ref={barChartRef} id="top-careers-chart" />
-                  </div>
-                </div>
-
-                {/* Match Distribution */}
-                <div className={styles.chartCard}>
-                  <h3 className={styles.chartTitle}>
-                    🎯 Skill Match Distribution
-                  </h3>
-                  <p className={styles.chartDesc}>
-                    How well students match their target careers
-                  </p>
-                  <div
-                    className={styles.chartContainer}
-                    style={{ maxHeight: 320 }}
+              {/* Add Admin Form */}
+              <form onSubmit={handleAddAdmin} className={styles.addAdminForm}>
+                <div className={styles.formInputGroup}>
+                  <input
+                    type="email"
+                    placeholder="Enter email address (e.g. jia.liang@university.edu)"
+                    value={newAdminEmail}
+                    onChange={(e) => setNewAdminEmail(e.target.value)}
+                    required
+                    className={styles.adminEmailInput}
+                    disabled={adminActionLoading}
+                  />
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={adminActionLoading || !newAdminEmail.trim()}
                   >
-                    <canvas ref={doughnutChartRef} id="match-dist-chart" />
-                  </div>
+                    {adminActionLoading ? "Adding..." : "Add Admin"}
+                  </button>
                 </div>
+              </form>
 
-                {/* Missing Skills */}
-                <div className={styles.chartCard}>
-                  <h3 className={styles.chartTitle}>
-                    ❌ Top Missing Skills Nationwide
-                  </h3>
-                  <p className={styles.chartDesc}>
-                    Most common skill gaps across all student analyses
-                  </p>
-                  <div className={styles.chartContainer}>
-                    <canvas ref={skillBarChartRef} id="missing-skills-chart" />
-                  </div>
+              {/* Status Messages */}
+              {adminError && (
+                <div className={styles.adminErrorMsg}>
+                  <span>⚠️</span> {adminError}
                 </div>
-
-                {/* University Breakdown */}
-                <div className={styles.chartCard}>
-                  <h3 className={styles.chartTitle}>
-                    🏫 University Breakdown
-                  </h3>
-                  <p className={styles.chartDesc}>
-                    Platform usage across Malaysian universities
-                  </p>
-                  <div className={styles.chartContainer}>
-                    <canvas ref={uniBarChartRef} id="university-chart" />
-                  </div>
+              )}
+              {adminSuccess && (
+                <div className={styles.adminSuccessMsg}>
+                  <span>✅</span> {adminSuccess}
                 </div>
-              </div>
-            </div>
-          </section>
+              )}
 
-          {/* Weekly Trend Table */}
-          <section className={styles.trendSection}>
-            <div className="container">
-              <div className={styles.trendCard}>
-                <h3 className={styles.chartTitle}>📅 Weekly Activity Trend</h3>
-                <div className={styles.tableWrapper}>
-                  <table className={styles.trendTable}>
-                    <thead>
-                      <tr>
-                        <th>Period</th>
-                        <th>Voice Sessions</th>
-                        <th>Skill Analyses</th>
-                        <th>Conversion Rate</th>
+              {/* List of Admins */}
+              <div className={styles.adminListWrapper}>
+                <table className={styles.adminListTable}>
+                  <thead>
+                    <tr>
+                      <th>Email Address</th>
+                      <th>Role / Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {adminsList.map((emailAddress) => (
+                      <tr key={emailAddress}>
+                        <td className={styles.adminEmailCol}>{emailAddress}</td>
+                        <td>
+                          {emailAddress === "onlytheone1092@gmail.com" ? (
+                            <span className="badge badge-primary">Super Admin</span>
+                          ) : (
+                            <span className="badge badge-accent">Authorized Admin</span>
+                          )}
+                        </td>
+                        <td>
+                          {emailAddress !== "onlytheone1092@gmail.com" ? (
+                            <button
+                              onClick={() => handleRemoveAdmin(emailAddress)}
+                              className={styles.revokeBtn}
+                              disabled={adminActionLoading}
+                            >
+                              Revoke Access
+                            </button>
+                          ) : (
+                            <span className={styles.systemProtectedLabel}>Protected</span>
+                          )}
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {analytics.weeklyTrend.map((week) => (
-                        <tr key={week.week}>
-                          <td>{week.week}</td>
-                          <td>{week.sessions}</td>
-                          <td>{week.analyses}</td>
-                          <td>
-                            <span className="badge badge-accent">
-                              {Math.round(
-                                (week.analyses / week.sessions) * 100
-                              )}
-                              %
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
-          </section>
-
-          {/* Policy Insights */}
-          <section className={styles.insightsSection}>
-            <div className="container">
-              <div className={styles.sectionHeader}>
-                <h2 className={styles.sectionTitle}>
-                  💡 Policy <span className="text-gradient">Insights</span>
-                </h2>
-              </div>
-              <div className={styles.insightsGrid}>
-                <div className={styles.insightCard}>
-                  <div className={styles.insightIcon}>🤖</div>
-                  <h4>AI & Tech Demand Surge</h4>
-                  <p>
-                    AI/ML Engineer and Data Scientist are the top 2 searched
-                    careers, indicating massive student interest in AI-related
-                    fields. Universities should expand AI curriculum.
-                  </p>
-                </div>
-                <div className={styles.insightCard}>
-                  <div className={styles.insightIcon}>🐍</div>
-                  <h4>Python is #1 Gap</h4>
-                  <p>
-                    Python is the most common missing skill across all analyses.
-                    This suggests a critical need for Python programming courses
-                    in university curricula nationwide.
-                  </p>
-                </div>
-                <div className={styles.insightCard}>
-                  <div className={styles.insightIcon}>📉</div>
-                  <h4>58% Average Match</h4>
-                  <p>
-                    Students average only 58% skill match with their target
-                    careers, highlighting a significant education-industry gap
-                    that needs policy intervention.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-        </>
+          </div>
+        </section>
       )}
 
       <Footer />

@@ -125,3 +125,23 @@ CREATE POLICY "Allow individual update to user_seen_courses" ON user_seen_course
 CREATE POLICY "Allow individual delete from user_seen_courses" ON user_seen_courses
   FOR DELETE USING (auth.uid() = user_id OR user_id IS NULL OR auth.uid() IS NULL);
 
+-- Table 5: Admin Users
+-- Stores additional administrator emails authorized to view analytics
+CREATE TABLE IF NOT EXISTS admin_users (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
+
+-- Enable RLS Policies for admin_users
+CREATE POLICY "Allow anyone to select admin_users" ON admin_users
+  FOR SELECT USING (true);
+
+CREATE POLICY "Allow anyone to insert admin_users" ON admin_users
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Allow anyone to delete admin_users" ON admin_users
+  FOR DELETE USING (true);

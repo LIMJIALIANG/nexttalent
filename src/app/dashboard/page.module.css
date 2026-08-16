@@ -321,3 +321,358 @@
   border-bottom-color: var(--gray-200);
 }
 
+/* ===== Access Denied ===== */
+.accessDeniedContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 180px);
+  padding: calc(80px + var(--space-16)) var(--space-6) var(--space-16);
+  background: var(--surface-0);
+}
+
+.deniedCard {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-8) var(--space-10);
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--panel-shadow-strong);
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.deniedIcon {
+  font-size: 3.5rem;
+  margin-bottom: var(--space-4);
+  filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.4));
+}
+
+.deniedTitle {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: var(--space-3);
+  color: white;
+}
+
+.deniedText {
+  color: var(--gray-400);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  margin-bottom: var(--space-6);
+}
+
+.deniedInfo {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  font-size: 0.875rem;
+  color: var(--gray-300);
+  margin-bottom: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.deniedInfo strong {
+  color: var(--accent-400);
+  font-weight: 600;
+}
+
+.deniedActions {
+  display: flex;
+  gap: var(--space-4);
+  justify-content: center;
+}
+
+/* Light Theme Overrides for Access Denied */
+:global([data-theme="light"]) .deniedCard {
+  background: #ffffff;
+  border-color: var(--gray-200);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.06);
+}
+
+:global([data-theme="light"]) .deniedTitle {
+  color: var(--gray-900);
+}
+
+:global([data-theme="light"]) .deniedText {
+  color: var(--gray-600);
+}
+
+:global([data-theme="light"]) .deniedInfo {
+  background: var(--gray-50);
+  border-color: var(--gray-200);
+  color: var(--gray-600);
+}
+
+:global([data-theme="light"]) .deniedInfo strong {
+  color: var(--primary-600);
+}
+
+/* ===== Sub Tab Switcher ===== */
+.subTabContainer {
+  display: flex;
+  gap: var(--space-4);
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 2px;
+  margin-top: var(--space-8);
+  margin-bottom: var(--space-4);
+}
+
+.subTab {
+  background: transparent;
+  border: none;
+  padding: var(--space-2) var(--space-4);
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: var(--font-primary);
+  color: var(--gray-400);
+  cursor: pointer;
+  position: relative;
+  transition: color var(--transition-fast);
+}
+
+.subTab:hover {
+  color: var(--gray-200);
+}
+
+.subTabActive {
+  color: var(--accent-400);
+}
+
+.subTabActive::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--gradient-primary);
+  border-radius: var(--radius-full);
+}
+
+/* Light theme overrides for sub tabs */
+:global([data-theme="light"]) .subTabContainer {
+  border-bottom-color: var(--gray-200);
+}
+
+:global([data-theme="light"]) .subTab {
+  color: var(--gray-500);
+}
+
+:global([data-theme="light"]) .subTab:hover {
+  color: var(--gray-800);
+}
+
+:global([data-theme="light"]) .subTabActive {
+  color: var(--primary-600);
+}
+
+/* ===== Admin Management Panel ===== */
+.adminManagementSection {
+  padding: var(--space-4) 0 var(--space-12);
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.adminCard {
+  background: var(--surface-1);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  box-shadow: var(--panel-shadow);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.adminCardTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: var(--space-2);
+  color: white;
+}
+
+.adminCardDesc {
+  color: var(--gray-400);
+  font-size: 0.875rem;
+  margin-bottom: var(--space-6);
+}
+
+.addAdminForm {
+  margin-bottom: var(--space-6);
+}
+
+.formInputGroup {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.adminEmailInput {
+  flex: 1;
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  color: white;
+  font-family: var(--font-primary);
+  font-size: 0.9375rem;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.adminEmailInput:focus {
+  outline: none;
+  border-color: var(--accent-400);
+  box-shadow: 0 0 0 3px rgba(0, 212, 160, 0.15);
+}
+
+.adminErrorMsg {
+  padding: var(--space-3) var(--space-4);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: var(--radius-lg);
+  color: #fca5a5;
+  font-size: 0.875rem;
+  margin-bottom: var(--space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.adminSuccessMsg {
+  padding: var(--space-3) var(--space-4);
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: var(--radius-lg);
+  color: #a7f3d0;
+  font-size: 0.875rem;
+  margin-bottom: var(--space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.adminListWrapper {
+  overflow-x: auto;
+  border-top: 1px solid var(--glass-border);
+  padding-top: var(--space-6);
+}
+
+.adminListTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.adminListTable th {
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  color: var(--gray-400);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.adminListTable td {
+  padding: var(--space-4);
+  color: var(--gray-200);
+  font-size: 0.9375rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.adminEmailCol {
+  font-family: monospace;
+  font-size: 0.95rem;
+}
+
+.revokeBtn {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  padding: var(--space-1-5) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.revokeBtn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: white;
+}
+
+.systemProtectedLabel {
+  color: var(--gray-500);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Light theme overrides for admin panel */
+:global([data-theme="light"]) .adminCard {
+  background: #ffffff;
+  border-color: var(--gray-200);
+}
+
+:global([data-theme="light"]) .adminCardTitle {
+  color: var(--gray-900);
+}
+
+:global([data-theme="light"]) .adminCardDesc {
+  color: var(--gray-500);
+}
+
+:global([data-theme="light"]) .adminEmailInput {
+  background: #ffffff;
+  border-color: var(--gray-300);
+  color: var(--gray-900);
+}
+
+:global([data-theme="light"]) .adminEmailInput:focus {
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 3px rgba(13, 139, 217, 0.12);
+}
+
+:global([data-theme="light"]) .adminListTable th {
+  border-bottom-color: var(--gray-200);
+}
+
+:global([data-theme="light"]) .adminListTable td {
+  color: var(--gray-700);
+  border-bottom-color: var(--gray-100);
+}
+
+:global([data-theme="light"]) .adminListWrapper {
+  border-top-color: var(--gray-200);
+}
+
+:global([data-theme="light"]) .revokeBtn {
+  background: rgba(239, 68, 68, 0.05);
+  border-color: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
+:global([data-theme="light"]) .revokeBtn:hover {
+  background: #dc2626;
+  color: white;
+}
+
+:global([data-theme="light"]) .adminErrorMsg {
+  background: rgba(239, 68, 68, 0.06);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #dc2626;
+}
+
+:global([data-theme="light"]) .adminSuccessMsg {
+  background: rgba(16, 185, 129, 0.06);
+  border-color: rgba(16, 185, 129, 0.2);
+  color: #059669;
+}
+

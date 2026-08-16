@@ -116,6 +116,49 @@ export default function Navbar(): React.JSX.Element {
       .slice(0, 2);
   };
 
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      const email = user?.email?.toLowerCase();
+      if (!email) {
+        setIsAdmin(false);
+        return;
+      }
+
+      if (email === "onlytheone1092@gmail.com") {
+        setIsAdmin(true);
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/admins");
+        const resData = await response.json();
+        if (resData.success && Array.isArray(resData.data)) {
+          const list = resData.data.map((e: string) => e.toLowerCase());
+          setIsAdmin(list.includes(email));
+        } else {
+          setIsAdmin(false);
+        }
+      } catch {
+        setIsAdmin(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user?.email]);
+
+  // Filter nav links: hide Dashboard if Supabase is active and user is not admin
+  const isSupabaseConfigured = !!getSupabaseBrowserClient();
+  const visibleLinks = NAV_LINKS.filter((link) => {
+    if (link.href === "/dashboard") {
+      if (isSupabaseConfigured) {
+        return isAdmin;
+      }
+    }
+    return true;
+  });
+
   return (
     <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ""}`}>
       <div className={styles.navInner}>
@@ -137,7 +180,7 @@ export default function Navbar(): React.JSX.Element {
         </Link>
 
         <div className={`${styles.navLinks} ${menuOpen ? styles.open : ""}`}>
-          {NAV_LINKS.map((link) => (
+          {visibleLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
